@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén - Gestión Total</title>
+    <title>El Almacén - Control Total v10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -18,11 +17,8 @@
         <nav class="flex-1 px-4 space-y-1">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-cash-register mr-3 text-blue-500"></i> Ventas</button>
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario</button>
-            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-pie mr-3 text-blue-500"></i> Reportes Diarios</button>
+            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-file-invoice-dollar mr-3 text-blue-500"></i> Reportes y Cierre</button>
         </nav>
-        <div class="p-4 border-t bg-gray-50 text-center">
-            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">v9.0 - Control de Ganancia</p>
-        </div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -37,9 +33,7 @@
     </div>
 
     <script>
-        let productos = JSON.parse(localStorage.getItem('productos')) || [
-            { id: 1, nombre: "Harina 0000", precio: 120.0, costo: 80.0, stock: 50.0, unidad: "kg", img: "https://via.placeholder.com/200" }
-        ];
+        let productos = JSON.parse(localStorage.getItem('productos')) || [];
         let carrito = [];
         let filtroActual = "";
 
@@ -50,6 +44,7 @@
             if (name === 'reports') renderReports(container);
         }
 
+        // --- POS CON CONTROLES DE CANTIDAD ---
         function renderPOS(container) {
             const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(filtroActual));
             container.innerHTML = `
@@ -64,11 +59,11 @@
                         `).join('')}
                     </div>
                     <div class="w-96 bg-white rounded-[32px] shadow-xl p-6 flex flex-col border border-blue-50">
-                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 italic">Ticket de Venta</h2>
-                        <div id="cart-list" class="flex-1 overflow-y-auto space-y-2"></div>
+                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 italic text-center">Ticket Actual</h2>
+                        <div id="cart-list" class="flex-1 overflow-y-auto space-y-3"></div>
                         <div class="pt-4 border-t border-dashed mt-4">
-                            <div class="flex justify-between text-2xl font-black text-blue-900 tracking-tighter"><span>TOTAL</span><span id="total-txt">$0.00</span></div>
-                            <button onclick="cobrarConTicket()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition">Finalizar Venta</button>
+                            <div class="flex justify-between text-2xl font-black text-blue-900"><span>TOTAL</span><span id="total-txt">$0.00</span></div>
+                            <button onclick="cobrarConTicket()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition">Cobrar e Imprimir</button>
                         </div>
                     </div>
                 </div>`;
@@ -77,40 +72,44 @@
 
         function agregarAlCarrito(id) {
             const p = productos.find(x => x.id === id);
-            let cantInput = prompt(`¿Cantidad de ${p.nombre}?`, "1");
-            let cantidad = parseFloat(cantInput);
-            if (isNaN(cantidad) || cantidad <= 0) return;
-            if (p.stock < cantidad) return alert("Stock insuficiente");
-
-            carrito.push({ ...p, cantidad: cantidad, precioOriginal: p.precio });
+            const itemExistente = carrito.find(x => x.id === id);
+            if (itemExistente) {
+                itemExistente.cantidad++;
+            } else {
+                carrito.push({ ...p, cantidad: 1 });
+            }
             renderCart();
         }
 
-        function modificarPrecioCarrito(index) {
-            let nuevoPrecio = parseFloat(prompt("Modificar precio para esta venta:", carrito[index].precio));
-            if (!isNaN(nuevoPrecio) && nuevoPrecio >= 0) {
-                carrito[index].precio = nuevoPrecio;
-                renderCart();
-            }
+        function cambiarCantidad(index, delta) {
+            carrito[index].cantidad = Math.max(0.1, carrito[index].cantidad + delta);
+            renderCart();
+        }
+
+        function modificarPrecio(index) {
+            let n = parseFloat(prompt("Nuevo precio:", carrito[index].precio));
+            if (!isNaN(n)) { carrito[index].precio = n; renderCart(); }
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             if (!list) return;
             list.innerHTML = carrito.map((i, index) => `
-                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 font-bold">
-                    <div class="flex justify-between items-start mb-1">
-                        <span class="text-xs uppercase">${i.nombre}</span>
-                        <button onclick="carrito.splice(${index},1); renderCart()" class="text-red-300 hover:text-red-500"><i class="fas fa-times-circle"></i></button>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 relative">
+                    <div class="flex justify-between items-start">
+                        <span class="text-[11px] font-black uppercase w-2/3">${i.nombre}</span>
+                        <button onclick="carrito.splice(${index},1); renderCart()" class="text-red-300"><i class="fas fa-times-circle"></i></button>
                     </div>
-                    <div class="flex justify-between items-center text-[10px]">
-                        <div class="flex items-center gap-2">
-                            <span>${i.cantidad} ${i.unidad} x</span>
-                            <div onclick="modificarPrecioCarrito(${index})" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-md cursor-pointer hover:bg-blue-200 transition flex items-center gap-1">
-                                $${i.precio.toFixed(2)} <i class="fas fa-edit text-[8px]"></i>
-                            </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex items-center gap-2 bg-white border rounded-lg p-1">
+                            <button onclick="cambiarCantidad(${index}, -0.5)" class="w-6 h-6 bg-gray-100 rounded text-blue-600 font-bold">-</button>
+                            <span class="text-xs font-black w-10 text-center">${i.cantidad}</span>
+                            <button onclick="cambiarCantidad(${index}, 0.5)" class="w-6 h-6 bg-gray-100 rounded text-blue-600 font-bold">+</button>
                         </div>
-                        <span class="text-blue-600">$${(i.precio * i.cantidad).toFixed(2)}</span>
+                        <div onclick="modificarPrecio(${index})" class="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded cursor-pointer font-bold">
+                            $${i.precio.toFixed(2)}
+                        </div>
+                        <span class="font-black text-xs text-gray-700">$${(i.precio * i.cantidad).toFixed(2)}</span>
                     </div>
                 </div>
             `).join('');
@@ -122,43 +121,31 @@
             if (carrito.length === 0) return;
             const totalVenta = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
-            
-            let pago = parseFloat(prompt(`TOTAL: $${totalVenta.toFixed(2)}\n¿Con cuánto paga el cliente?`, totalVenta));
-            if (isNaN(pago) || pago < totalVenta) return alert("Monto insuficiente");
-            
-            // Lógica de Impresión...
+            let pago = parseFloat(prompt(`TOTAL: $${totalVenta.toFixed(2)}\n¿Con cuánto paga?`, totalVenta));
+            if (isNaN(pago) || pago < totalVenta) return alert("Error en el monto");
+
             const win = window.open('', '_blank');
-            win.document.write(`<html><body style="font-family:monospace;width:260px;text-transform:uppercase;padding:10px;">
-                <center><h2>EL ALMACÉN</h2><p>Sarmiento 2201</p></center><hr>
-                ${carrito.map(i => `<p>${i.nombre}<br>${i.cantidad} x $${i.precio} <span style="float:right">$${(i.precio*i.cantidad).toFixed(2)}</span></p>`).join('')}
-                <hr><div style="font-size:14px;font-weight:bold;">TOTAL: <span style="float:right">$${totalVenta.toFixed(2)}</span></div>
-                <p>PAGA: $${pago.toFixed(2)} | VUELTO: $${(pago-totalVenta).toFixed(2)}</p>
+            win.document.write(`<html><body style="font-family:monospace;width:260px;text-transform:uppercase;font-size:12px;">
+                <center><h2>EL ALMACÉN</h2><hr>${carrito.map(i => `<p>${i.nombre}<br>${i.cantidad} x $${i.precio} <span style="float:right">$${(i.precio*i.cantidad).toFixed(2)}</span></p>`).join('')}<hr>
+                <b>TOTAL: $${totalVenta.toFixed(2)}</b><br>PAGA: $${pago.toFixed(2)}<br>VUELTO: $${(pago-totalVenta).toFixed(2)}<hr><p>¡GRACIAS!</p></center>
                 <script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
 
-            // Descontar stock y Guardar historial con fecha
             carrito.forEach(item => {
                 const p = productos.find(x => x.id === item.id);
                 if (p) p.stock = parseFloat((p.stock - item.cantidad).toFixed(2));
             });
 
             const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            h.push({ 
-                fecha: new Date().toLocaleDateString(), 
-                total: totalVenta, 
-                costo: costoVenta,
-                ganancia: totalVenta - costoVenta 
-            });
+            h.push({ fecha: new Date().toLocaleDateString(), total: totalVenta, costo: costoVenta, ganancia: totalVenta - costoVenta });
             localStorage.setItem('historial_ventas', JSON.stringify(h));
             localStorage.setItem('productos', JSON.stringify(productos));
-
             carrito = [];
             showSection('pos');
         }
 
+        // --- REPORTES Y CIERRE DE DÍA ---
         function renderReports(container) {
             const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            
-            // Agrupar por día
             const resumenPorDia = h.reduce((acc, curr) => {
                 if (!acc[curr.fecha]) acc[curr.fecha] = { total: 0, ganancia: 0 };
                 acc[curr.fecha].total += curr.total;
@@ -167,46 +154,55 @@
             }, {});
 
             container.innerHTML = `
-                <h2 class="text-2xl font-black mb-6 uppercase italic tracking-widest text-blue-600">Reporte de Ganancias Diarias</h2>
-                <div class="grid grid-cols-1 gap-4">
-                    <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="p-4 text-[10px] font-black uppercase text-gray-400">Fecha</th>
-                                    <th class="p-4 text-[10px] font-black uppercase text-gray-400">Ventas Totales</th>
-                                    <th class="p-4 text-[10px] font-black uppercase text-gray-400">Ganancia Real</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${Object.keys(resumenPorDia).reverse().map(dia => `
-                                    <tr class="border-b hover:bg-gray-50 transition">
-                                        <td class="p-4 font-bold text-gray-600">${dia}</td>
-                                        <td class="p-4 font-black text-gray-800">$${resumenPorDia[dia].total.toFixed(2)}</td>
-                                        <td class="p-4 font-black text-green-600">$${resumenPorDia[dia].ganancia.toFixed(2)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black uppercase italic text-blue-600">Reporte de Ventas</h2>
+                    <button onclick="finalizarDia()" class="bg-red-500 text-white px-6 py-3 rounded-2xl font-black shadow-lg hover:bg-red-700 transition uppercase text-xs tracking-widest">
+                        <i class="fas fa-power-off mr-2"></i> Finalizar Día
+                    </button>
                 </div>
-            `;
+                <div class="grid grid-cols-1 gap-4">
+                    ${Object.keys(resumenPorDia).reverse().map(dia => `
+                        <div class="bg-white p-6 rounded-3xl shadow-sm border flex justify-between items-center">
+                            <div><p class="text-[10px] font-black text-gray-400 uppercase">Fecha</p><p class="text-lg font-black">${dia}</p></div>
+                            <div class="text-center">
+                                <p class="text-[10px] font-black text-gray-400 uppercase">Ventas</p>
+                                <p class="text-lg font-black text-gray-800">$${resumenPorDia[dia].total.toFixed(2)}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-green-400 uppercase">Ganancia Neta</p>
+                                <p class="text-2xl font-black text-green-600">$${resumenPorDia[dia].ganancia.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
         }
 
-        // Resto de funciones (Inventario, Buscador, etc.)
+        function finalizarDia() {
+            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            const hoy = new Date().toLocaleDateString();
+            const ventasHoy = h.filter(v => v.fecha === hoy);
+            const totalGanancia = ventasHoy.reduce((s, v) => s + v.ganancia, 0);
+
+            if (confirm(`CIERRE DE CAJA - DÍA: ${hoy}\n\nGANANCIA TOTAL DEL DÍA: $${totalGanancia.toFixed(2)}\n\n¿Deseas archivar y limpiar el historial?`)) {
+                // Aquí podrías guardar el cierre en otra variable si quisieras un histórico a largo plazo
+                alert(`Día Cerrado. Ganancia acumulada: $${totalGanancia.toFixed(2)}`);
+                // localStorage.removeItem('historial_ventas'); // Opcional: descomentar si quieres que la tabla se vacíe al cerrar
+                showSection('reports');
+            }
+        }
+
+        // --- INVENTARIO ---
         function renderInventory(container) {
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-black uppercase italic">Inventario</h2>
                 <button onclick="agregarNuevo()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">+ PRODUCTO</button></div>
                 <div class="grid grid-cols-1 gap-2">${productos.map(p => `
                     <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center">
-                        <div><p class="font-black text-xs uppercase text-gray-700">${p.nombre}</p><p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Costo: $${p.costo} | Venta: $${p.precio}</p></div>
+                        <div><p class="font-black text-xs uppercase text-gray-700">${p.nombre}</p><p class="text-[10px] text-gray-400 font-bold">C: $${p.costo} | V: $${p.precio}</p></div>
                         <div class="flex items-center gap-6">
-                            <div class="text-right"><p class="text-[9px] text-gray-300 font-bold uppercase italic">Disponible</p><p class="font-black text-blue-600">${p.stock} ${p.unidad}</p></div>
-                            <div class="flex gap-2">
-                                <button onclick="editarProducto(${p.id})" class="text-gray-300 hover:text-blue-500 p-2"><i class="fas fa-edit"></i></button>
-                                <button onclick="borrarProducto(${p.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>
-                            </div>
+                            <p class="font-black text-blue-600">${p.stock} ${p.unidad}</p>
+                            <button onclick="editarProducto(${p.id})" class="text-gray-300 hover:text-blue-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="borrarProducto(${p.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('')}</div>`;
@@ -214,14 +210,7 @@
 
         function agregarNuevo() {
             const n = prompt("Nombre:"); if (!n) return;
-            productos.push({
-                id: Date.now(), nombre: n, 
-                costo: parseFloat(prompt("Costo:", "0")), 
-                precio: parseFloat(prompt("Venta:", "0")), 
-                stock: parseFloat(prompt("Stock:", "0")), 
-                unidad: prompt("Unidad:", "kg"),
-                img: "https://via.placeholder.com/200"
-            });
+            productos.push({ id: Date.now(), nombre: n, costo: parseFloat(prompt("Costo:", "0")), precio: parseFloat(prompt("Venta:", "0")), stock: parseFloat(prompt("Stock:", "0")), unidad: prompt("Unidad:", "kg") });
             localStorage.setItem('productos', JSON.stringify(productos));
             showSection('inventory');
         }
