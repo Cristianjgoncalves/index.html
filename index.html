@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén del Repostero - Gestión Pro</title>
+    <title>El Almacén del Repostero - Sistema Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -11,16 +11,16 @@
 
     <div class="w-64 bg-white shadow-xl flex flex-col z-20">
         <div class="p-6">
-            <h1 class="text-xl font-black text-blue-600 leading-tight uppercase tracking-tighter">El Almacén <br>del Repostero</h1>
-            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic">Gestión de Inventario</p>
+            <h1 class="text-xl font-black text-blue-600 leading-tight uppercase">El Almacén <br>del Repostero</h1>
+            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase">Sarmiento 2201</p>
         </div>
         <nav class="flex-1 px-4 space-y-1">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-cash-register mr-3 text-blue-500"></i> Ventas</button>
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario</button>
             <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-line mr-3 text-blue-500"></i> Reportes</button>
         </nav>
-        <div class="p-4 border-t bg-gray-50 flex flex-col gap-2">
-            <button onclick="resetDatos()" class="text-[9px] font-black text-red-400 uppercase hover:underline">Resetear Datos (Borra todo)</button>
+        <div class="p-4 border-t bg-gray-50 text-center">
+            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">v8.2 - Edición Final</p>
         </div>
     </div>
 
@@ -32,18 +32,16 @@
             </div>
             <div id="reloj" class="font-black text-gray-400 text-sm"></div>
         </header>
-        <main id="main-content" class="flex-1 p-6 overflow-y-auto bg-gray-50"></main>
+        <main id="main-content" class="flex-1 p-6 overflow-y-auto"></main>
     </div>
 
     <script>
-        // Inicialización de Datos
         let productos = JSON.parse(localStorage.getItem('productos')) || [
             { id: 1, nombre: "Harina 0000", precio: 120.0, costo: 80.0, stock: 50.0, unidad: "kg", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200" }
         ];
         let carrito = [];
         let filtroActual = "";
 
-        // Función para cambiar de sección
         function showSection(name) {
             const container = document.getElementById('main-content');
             if (name === 'pos') renderPOS(container);
@@ -51,100 +49,25 @@
             if (name === 'reports') renderReports(container);
         }
 
-        // --- INVENTARIO (CORREGIDO) ---
-        function renderInventory(container) {
-            container.innerHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-black uppercase italic tracking-widest">Control de Stock</h2>
-                    <button onclick="agregarNuevo()" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black shadow-lg hover:bg-blue-700 transition">+ NUEVO PRODUCTO</button>
-                </div>
-                <div class="grid grid-cols-1 gap-3">
-                    ${productos.map(p => `
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between group">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                                    <img src="${p.img}" onerror="this.src='https://via.placeholder.com/100?text=IMG'" class="w-full h-full object-cover">
-                                </div>
-                                <div>
-                                    <p class="font-black text-gray-700 text-sm uppercase">${p.nombre}</p>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase">
-                                        Costo: <span class="text-red-500">$${Number(p.costo).toFixed(2)}</span> | 
-                                        Venta: <span class="text-green-600">$${Number(p.precio).toFixed(2)}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-8">
-                                <div class="text-right">
-                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Disponible</p>
-                                    <p class="font-black ${p.stock < 5 ? 'text-red-500' : 'text-blue-600'} text-lg">${p.stock} ${p.unidad}</p>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button onclick="editarProducto(${p.id})" class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"><i class="fas fa-edit"></i></button>
-                                    <button onclick="borrarProducto(${p.id})" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>`;
-        }
-
-        // --- FUNCIONES DE GESTIÓN ---
-        function agregarNuevo() {
-            const nombre = prompt("Nombre del producto:");
-            if (!nombre) return;
-            const costo = parseFloat(prompt("Precio de costo:", "0"));
-            const venta = parseFloat(prompt("Precio de venta:", "0"));
-            const stock = parseFloat(prompt("Cantidad inicial:", "0"));
-            const unidad = prompt("Unidad (kg, unidad, pack):", "unidad");
-            
-            const nuevo = { id: Date.now(), nombre, costo, precio: venta, stock, unidad, img: "https://via.placeholder.com/200?text=Producto" };
-            productos.push(nuevo);
-            guardarYRefrescar('inventory');
-        }
-
-        function editarProducto(id) {
-            const p = productos.find(x => x.id === id);
-            const nNombre = prompt("Nuevo nombre:", p.nombre);
-            const nCosto = parseFloat(prompt("Nuevo costo:", p.costo));
-            const nVenta = parseFloat(prompt("Nuevo precio venta:", p.precio));
-            const nStock = parseFloat(prompt("Ajustar Stock:", p.stock));
-
-            if (nNombre) {
-                p.nombre = nNombre;
-                p.costo = nCosto;
-                p.precio = nVenta;
-                p.stock = nStock;
-                guardarYRefrescar('inventory');
-            }
-        }
-
-        function borrarProducto(id) {
-            if (confirm("¿Seguro que quieres eliminar este producto?")) {
-                productos = productos.filter(x => x.id !== id);
-                guardarYRefrescar('inventory');
-            }
-        }
-
-        // --- PUNTO DE VENTA ---
         function renderPOS(container) {
             const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(filtroActual));
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
                     <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-4 content-start">
                         ${filtrados.map(p => `
-                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md cursor-pointer transition">
+                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-500 cursor-pointer transition">
                                 <h3 class="font-black text-[10px] uppercase text-gray-500">${p.nombre}</h3>
                                 <p class="text-blue-600 font-black text-xl">$${p.precio.toFixed(2)}</p>
-                                <p class="text-[9px] font-bold text-gray-300 uppercase">${p.stock} ${p.unidad} en stock</p>
+                                <p class="text-[9px] font-bold text-gray-300 uppercase">Stock: ${p.stock} ${p.unidad}</p>
                             </div>
                         `).join('')}
                     </div>
                     <div class="w-80 bg-white rounded-[32px] shadow-xl p-6 flex flex-col border border-blue-50">
-                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4">Carrito</h2>
+                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4">Ticket</h2>
                         <div id="cart-list" class="flex-1 overflow-y-auto space-y-2"></div>
                         <div class="pt-4 border-t border-dashed mt-4">
                             <div class="flex justify-between text-2xl font-black text-blue-900"><span>TOTAL</span><span id="total-txt">$0.00</span></div>
-                            <button onclick="finalizarVenta()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black text-xs uppercase tracking-widest">Cobrar</button>
+                            <button onclick="cobrarConTicket()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black text-xs uppercase tracking-widest shadow-lg hover:scale-95 transition">Finalizar e Imprimir</button>
                         </div>
                     </div>
                 </div>`;
@@ -153,8 +76,8 @@
 
         function agregarAlCarrito(id) {
             const p = productos.find(x => x.id === id);
-            if (p.stock <= 0) return alert("Sin stock");
             const item = carrito.find(x => x.id === id);
+            if (p.stock <= (item ? item.cantidad : 0)) return alert("Stock insuficiente");
             if (item) item.cantidad++; else carrito.push({...p, cantidad: 1});
             renderCart();
         }
@@ -172,65 +95,105 @@
             document.getElementById('total-txt').innerText = `$${total.toFixed(2)}`;
         }
 
-        function finalizarVenta() {
+        function cobrarConTicket() {
             if (carrito.length === 0) return;
+            const totalVenta = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            
+            let pago = parseFloat(prompt(`TOTAL: $${totalVenta.toFixed(2)}\n¿Con cuánto paga el cliente?`, totalVenta));
+            if (isNaN(pago) || pago < totalVenta) return alert("Monto insuficiente");
+            
+            const vuelto = pago - totalVenta;
+
+            // Ventana de Impresión
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <body style="font-family: 'Courier New', monospace; width: 260px; text-transform: uppercase; font-size: 11px;">
+                    <center><h2>EL ALMACÉN</h2><p>Sarmiento 2201</p></center>
+                    <hr>${carrito.map(i => `<p>${i.nombre} x${i.cantidad} <span style="float:right">$${(i.precio*i.cantidad).toFixed(2)}</span></p>`).join('')}<hr>
+                    <div style="font-weight:bold; font-size:14px;">TOTAL: <span style="float:right">$${totalVenta.toFixed(2)}</span></div>
+                    <p>PAGA: $${pago.toFixed(2)} | VUELTO: $${vuelto.toFixed(2)}</p>
+                    <center><p>GRACIAS POR SU COMPRA</p></center>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                </body>
+                </html>
+            `);
+
+            alert(`VENTA EXITOSA\n-------------------\nVUELTO: $${vuelto.toFixed(2)}`);
+
+            // Descontar Stock y Guardar
+            const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
             carrito.forEach(item => {
                 const p = productos.find(x => x.id === item.id);
-                if (p) p.stock = (p.stock - item.cantidad).toFixed(2);
+                if (p) p.stock = parseFloat((p.stock - item.cantidad).toFixed(2));
             });
-            const totalVenta = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-            const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
-            
+
             const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            h.push({ fecha: new Date().toLocaleString(), total: totalVenta, costo: costoVenta });
+            h.push({ fecha: new Date().toLocaleDateString(), total: totalVenta, costo: costoVenta });
             localStorage.setItem('historial_ventas', JSON.stringify(h));
-            
+            localStorage.setItem('productos', JSON.stringify(productos));
+
             carrito = [];
-            guardarYRefrescar('pos');
-            alert("Venta exitosa");
+            showSection('pos');
+        }
+
+        function renderInventory(container) {
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-black uppercase">Inventario</h2>
+                <button onclick="agregarNuevo()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">+ Nuevo</button></div>
+                <div class="space-y-2">${productos.map(p => `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center">
+                        <div><p class="font-black text-xs uppercase">${p.nombre}</p><p class="text-[10px] text-gray-400">COSTO: $${p.costo} | VENTA: $${p.precio}</p></div>
+                        <div class="flex items-center gap-4">
+                            <span class="font-black text-blue-600">${p.stock} ${p.unidad}</span>
+                            <button onclick="editarProducto(${p.id})" class="text-gray-300 hover:text-blue-500"><i class="fas fa-edit"></i></button>
+                            <button onclick="borrarProducto(${p.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `).join('')}</div>`;
+        }
+
+        function agregarNuevo() {
+            const n = prompt("Nombre:"); if (!n) return;
+            productos.push({
+                id: Date.now(), nombre: n, 
+                costo: parseFloat(prompt("Costo:", "0")), 
+                precio: parseFloat(prompt("Venta:", "0")), 
+                stock: parseFloat(prompt("Stock:", "0")), 
+                unidad: prompt("Unidad:", "unidad"),
+                img: "https://via.placeholder.com/200"
+            });
+            localStorage.setItem('productos', JSON.stringify(productos));
+            showSection('inventory');
+        }
+
+        function editarProducto(id) {
+            const p = productos.find(x => x.id === id);
+            p.nombre = prompt("Nombre:", p.nombre);
+            p.costo = parseFloat(prompt("Costo:", p.costo));
+            p.precio = parseFloat(prompt("Venta:", p.precio));
+            p.stock = parseFloat(prompt("Stock:", p.stock));
+            localStorage.setItem('productos', JSON.stringify(productos));
+            showSection('inventory');
+        }
+
+        function borrarProducto(id) {
+            if(confirm("¿Borrar?")) { productos = productos.filter(x => x.id !== id); localStorage.setItem('productos', JSON.stringify(productos)); showSection('inventory'); }
         }
 
         function renderReports(container) {
             const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
             const ing = h.reduce((s, v) => s + v.total, 0);
             const cos = h.reduce((s, v) => s + v.costo, 0);
-            container.innerHTML = `
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-blue-600 p-8 rounded-[32px] text-white">
-                        <p class="text-xs opacity-60 uppercase font-bold">Ventas Totales</p>
-                        <p class="text-4xl font-black">$${ing.toFixed(2)}</p>
-                    </div>
-                    <div class="bg-green-500 p-8 rounded-[32px] text-white">
-                        <p class="text-xs opacity-60 uppercase font-bold">Ganancia Real</p>
-                        <p class="text-4xl font-black">$${(ing - cos).toFixed(2)}</p>
-                    </div>
-                </div>`;
+            container.innerHTML = `<div class="grid grid-cols-2 gap-6">
+                <div class="bg-blue-600 p-8 rounded-[40px] text-white"><p class="text-xs font-bold opacity-60">CAJA TOTAL</p><p class="text-4xl font-black">$${ing.toFixed(2)}</p></div>
+                <div class="bg-green-500 p-8 rounded-[40px] text-white"><p class="text-xs font-bold opacity-60">GANANCIA REAL</p><p class="text-4xl font-black">$${(ing-cos).toFixed(2)}</p></div>
+            </div>`;
         }
 
-        function guardarYRefrescar(section) {
-            localStorage.setItem('productos', JSON.stringify(productos));
-            showSection(section);
-        }
-
-        function resetDatos() {
-            if (confirm("¿Estás SEGURO? Se borrarán todos tus productos y ventas.")) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        function filtrarProductos() {
-            filtroActual = document.getElementById('buscador').value.toLowerCase();
-            showSection('pos');
-        }
-
-        setInterval(() => {
-            const r = document.getElementById('reloj');
-            if(r) r.innerText = new Date().toLocaleTimeString();
-        }, 1000);
-
+        function filtrarProductos() { filtroActual = document.getElementById('buscador').value.toLowerCase(); showSection('pos'); }
+        setInterval(() => { const r = document.getElementById('reloj'); if(r) r.innerText = new Date().toLocaleTimeString(); }, 1000);
         window.onload = () => showSection('pos');
     </script>
 </body>
 </html>
-
