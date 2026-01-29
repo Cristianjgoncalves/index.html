@@ -2,23 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Negocio POS - Sistema de Ventas</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 h-screen flex overflow-hidden font-sans">
-
-    <div class="w-64 bg-white shadow-lg flex flex-col z-10">
-        <div class="p-6 text-2xl font-bold text-blue-600 flex items-center">
-            <span class="bg-blue-600 text-white p-2 rounded mr-2 text-xs">N</span> Negocio POS
-        </div>
-        <nav class="flex-1 px-4 space-y-2">
-            <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text…
-[5:36 PM, 1/29/2026] Cris: <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Negocio POS - Sistema de Ventas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Negocio POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -29,7 +14,7 @@
         </div>
         <nav class="flex-1 px-4 space-y-2">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
-                <i class="fas fa-shopping-cart mr-3"></i> Punto de Venta
+                <i class="fas fa-shopping-cart mr-3"></i> Ventas
             </button>
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
                 <i class="fas fa-boxes mr-3"></i> Inventario
@@ -39,14 +24,15 @@
             <p>● Sistema Activo</p>
         </div>
     </div>
+
     <main id="main-content" class="flex-1 p-8 overflow-y-auto"></main>
 
     <script>
         let productos = JSON.parse(localStorage.getItem('productos')) || [
-            { id: 1, nombre: "Manzana Roja", precio: 45.00, costo: 30.00, stock: 19.0, unidad: "kg" },
-            { id: 2, nombre: "Leche Entera", precio: 22.00, costo: 16.50, stock: 29.0, unidad: "litro" },
-            { id: 3, nombre: "Arroz Premium", precio: 25.00, costo: 18.00, stock: 49.5, unidad: "kg" },
-            { id: 4, nombre: "Coca Cola 500ml", precio: 15.00, costo: 10.00, stock: 100, unidad: "unidad" }
+            { id: 1, nombre: "Manzana Roja", precio: 45.0, stock: 19.0, unidad: "kg" },
+            { id: 2, nombre: "Leche Entera", precio: 22.0, stock: 29.0, unidad: "litro" },
+            { id: 3, nombre: "Arroz Premium", precio: 25.0, stock: 49.5, unidad: "kg" },
+            { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, stock: 100, unidad: "unidad" }
         ];
         let carrito = [];
 
@@ -59,23 +45,21 @@
         function renderPOS(container) {
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
-                    <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="flex-1 grid grid-cols-2 gap-4">
                         ${productos.map(p => `
-                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md cursor-pointer text-center">
+                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow border hover:bg-blue-50 cursor-pointer text-center">
                                 <h3 class="font-bold text-gray-700">${p.nombre}</h3>
                                 <p class="text-blue-600 font-bold">$${p.precio.toFixed(2)}</p>
-                                <p class="text-[10px] text-gray-400 uppercase">${p.stock} ${p.unidad} disp.</p>
+                                <p class="text-[10px] text-gray-400">${p.stock} ${p.unidad} disp.</p>
                             </div>
                         `).join('')}
                     </div>
-                    <div class="w-80 bg-white p-4 rounded-xl shadow-lg border flex flex-col">
-                        <h2 class="font-bold border-b pb-2 mb-4">🛒 Ticket</h2>
+                    <div class="w-72 bg-white p-4 rounded-xl shadow-lg border flex flex-col">
+                        <h2 class="font-bold border-b pb-2 mb-4 italic">Ticket</h2>
                         <div id="cart-items" class="flex-1 space-y-2 text-sm overflow-y-auto"></div>
                         <div class="border-t pt-4 mt-4">
-                            <div class="flex justify-between font-bold text-xl text-blue-700">
-                                <span>TOTAL</span><span id="total-price">$0.00</span>
-                            </div>
-                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-4 rounded-xl mt-4 font-bold">COBRAR</button>
+                            <p class="font-bold text-xl text-blue-700">Total: <span id="total-price">$0.00</span></p>
+                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-3 rounded-xl mt-4 font-bold">COBRAR</button>
                         </div>
                     </div>
                 </div>`;
@@ -94,7 +78,7 @@
         function updateCartUI() {
             const items = document.getElementById('cart-items');
             if(!items) return;
-            items.innerHTML = carrito.map(i => <div class="flex justify-between bg-gray-50 p-2 rounded"><span>${i.nombre} x${i.cantidad}</span><span class="font-bold">$${(i.precio*i.cantidad).toFixed(2)}</span></div>).join('');
+            items.innerHTML = carrito.map(i => <div class="flex justify-between border-b pb-1"><span>${i.nombre} x${i.cantidad}</span><b>$${(i.precio*i.cantidad).toFixed(2)}</b></div>).join('');
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             document.getElementById('total-price').innerText = $${total.toFixed(2)};
         }
@@ -106,31 +90,22 @@
                 if(p) p.stock -= item.cantidad;
             });
             localStorage.setItem('productos', JSON.stringify(productos));
-            alert("Venta exitosa. Stock actualizado.");
+            alert("Venta procesada y stock actualizado");
             carrito = [];
             showSection('pos');
         }
 
         function renderInventory(container) {
-            container.innerHTML = `<h2 class="text-2xl font-bold mb-4">Inventario</h2>
-                <div class="bg-white rounded-xl shadow overflow-hidden">
+            container.innerHTML = `<h2 class="text-2xl font-bold mb-4">Stock</h2>
+                <div class="bg-white rounded shadow overflow-hidden">
                     <table class="w-full text-left">
-                        <thead class="bg-gray-100 font-bold text-gray-500">
-                            <tr><th class="p-4">Producto</th><th class="p-4">Stock</th><th class="p-4">Precio</th></tr>
-                        </thead>
-                        <tbody>
-                            ${productos.map(p => `
-                                <tr class="border-t">
-                                    <td class="p-4 font-bold">${p.nombre}</td>
-                                    <td class="p-4 text-blue-600">${p.stock} ${p.unidad}</td>
-                                    <td class="p-4">$${p.precio}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
+                        <tr class="bg-gray-100 font-bold text-gray-500">
+                            <th class="p-4">Producto</th><th class="p-4">Stock</th><th class="p-4">Precio</th>
+                        </tr>
+                        ${productos.map(p => <tr class="border-t"><td class="p-4">${p.nombre}</td><td class="p-4 text-blue-600">${p.stock} ${p.unidad}</td><td class="p-4">$${p.precio}</td></tr>).join('')}
                     </table>
                 </div>`;
         }
-
         window.onload = () => showSection('pos');
     </script>
 </body>
