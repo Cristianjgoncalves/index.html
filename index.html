@@ -136,3 +136,50 @@
     </script>
 </body>
 </html>
+function renderReports(container) {
+    // Obtenemos las ventas guardadas en la memoria de la PC
+    const historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+    
+    let totalVendido = 0;
+    let totalCosto = 0;
+
+    historial.forEach(venta => {
+        totalVendido += venta.total;
+        venta.items.forEach(item => {
+            // Buscamos el costo original del producto para calcular ganancia
+            totalCosto += (item.costo * item.cantidad);
+        });
+    });
+
+    const gananciaNeta = totalVendido - totalCosto;
+
+    container.innerHTML = `
+        <div class="space-y-6">
+            <h2 class="text-2xl font-bold text-gray-800">Reporte de Ganancias</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                    <p class="text-sm text-gray-500 uppercase font-bold">Ingresos Totales</p>
+                    <p class="text-3xl font-black text-gray-800">$${totalVendido.toFixed(2)}</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500">
+                    <p class="text-sm text-gray-500 uppercase font-bold">Costo de Mercadería</p>
+                    <p class="text-3xl font-black text-gray-800">$${totalCosto.toFixed(2)}</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                    <p class="text-sm text-gray-500 uppercase font-bold">Ganancia Neta</p>
+                    <p class="text-3xl font-black text-green-600">$${gananciaNeta.toFixed(2)}</p>
+                </div>
+            </div>
+
+            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p class="text-blue-700 text-sm">
+                    <i class="fas fa-info-circle mr-2"></i> 
+                    Estas ganancias se calculan restando el <strong>costo inicial</strong> al <strong>precio de venta</strong> de cada artículo.
+                </p>
+            </div>
+        </div>
+    `;
+}
