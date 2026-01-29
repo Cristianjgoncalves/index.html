@@ -3,9 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Negocio POS Pro</title>
+    <title>Negocio POS Pro - Fix Imágenes</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilo para cuando la imagen no carga */
+        .img-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f3f4f6;
+            color: #d1d5db;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden font-sans text-gray-800">
 
@@ -16,31 +28,38 @@
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario</button>
             <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-line mr-3 text-blue-500"></i> Reportes</button>
         </nav>
-        <div class="p-4 border-t"><div class="bg-blue-600 text-white text-[10px] p-2 rounded-lg text-center font-bold uppercase">v2.0 - Sistema Pro</div></div>
+        <div class="p-4 border-t"><div class="bg-blue-600 text-white text-[10px] p-2 rounded-lg text-center font-bold uppercase tracking-widest">Sistema Pro Activo</div></div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-hidden">
         <header class="bg-white p-4 shadow-sm border-b flex justify-between items-center">
             <div class="relative w-96">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                <input type="text" id="buscador" onkeyup="filtrarProductos()" placeholder="Escribe para buscar..." class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="text" id="buscador" onkeyup="filtrarProductos()" placeholder="Buscar producto..." class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
-            <div class="text-sm font-bold text-gray-500" id="fecha-actual"></div>
+            <div id="fecha-actual" class="text-sm font-bold text-gray-400 uppercase tracking-tighter"></div>
         </header>
 
         <main id="main-content" class="flex-1 p-6 overflow-y-auto"></main>
     </div>
 
     <script>
+        // Si tienes imágenes en una carpeta, cambia las URLs por "img/manzana.jpg", etc.
         let productos = JSON.parse(localStorage.getItem('productos')) || [
-            { id: 1, nombre: "Manzana Roja", precio: 45.0, costo: 30.0, stock: 19.0, unidad: "kg", img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6bccb?w=200" },
-            { id: 2, nombre: "Leche Entera", precio: 22.0, costo: 16.5, stock: 29.0, unidad: "litro", img: "https://images.unsplash.com/photo-1563636619-e9107da5a1bb?w=200" },
-            { id: 3, nombre: "Arroz Premium", precio: 25.0, costo: 18.0, stock: 49.5, unidad: "kg", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200" },
-            { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, costo: 10.0, stock: 100, unidad: "unidad", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200" }
+            { id: 1, nombre: "Manzana Roja", precio: 45.0, costo: 30.0, stock: 19, unidad: "kg", img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6bccb?w=400" },
+            { id: 2, nombre: "Leche Entera", precio: 22.0, costo: 16.5, stock: 29, unidad: "litro", img: "https://images.unsplash.com/photo-1563636619-e9107da5a1bb?w=400" },
+            { id: 3, nombre: "Arroz Premium", precio: 25.0, costo: 18.0, stock: 49, unidad: "kg", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400" },
+            { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, costo: 10.0, stock: 100, unidad: "unidad", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400" }
         ];
 
         let carrito = [];
         let filtroActual = "";
+
+        // FUNCIÓN CLAVE: Maneja imágenes rotas
+        function handleImgError(img) {
+            img.onerror = null; 
+            img.parentElement.innerHTML = `<div class="img-fallback"><i class="fas fa-box text-3xl"></i></div>`;
+        }
 
         function filtrarProductos() {
             filtroActual = document.getElementById('buscador').value.toLowerCase();
@@ -55,16 +74,123 @@
         }
 
         function renderPOS(container) {
-            const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(filtroActual));
-            
+            const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(filtroActual));
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
                     <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 content-start">
-                        ${productosFiltrados.map(p => `
-                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer overflow-hidden group">
-                                <div class="h-32 overflow-hidden bg-gray-100">
-                                    <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                        ${filtrados.map(p => `
+                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-300 transition-all cursor-pointer overflow-hidden group">
+                                <div class="h-32 bg-gray-100 overflow-hidden relative">
+                                    <img src="${p.img}" onerror="handleImgError(this)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                                 </div>
-                                <div class="p-4 text-center">
-                                    <h3 class="font-black text-gray-800 uppercase text-xs">${p.nombre}</h3>
-                                    <p class="text-blue-600 font-black text-xl mt-1">$${
+                                <div class="p-4">
+                                    <h3 class="font-black text-gray-800 uppercase text-[10px] mb-1">${p.nombre}</h3>
+                                    <p class="text-blue-600 font-black text-xl">$${p.precio.toFixed(2)}</p>
+                                    <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic">${p.stock} ${p.unidad} disponibles</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="w-96 bg-white rounded-[32px] shadow-2xl border p-6 flex flex-col">
+                        <h2 class="font-black text-gray-400 text-[10px] uppercase tracking-widest mb-4">Ticket de Venta</h2>
+                        <div id="cart-items" class="flex-1 space-y-2 overflow-y-auto pr-2"></div>
+                        <div class="border-t-2 border-dashed pt-4 mt-4">
+                            <div class="flex justify-between items-center text-2xl font-black text-blue-900">
+                                <span>TOTAL</span><span id="total-price">$0.00</span>
+                            </div>
+                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition">COBRAR</button>
+                        </div>
+                    </div>
+                </div>`;
+            updateCartUI();
+        }
+
+        function agregarAlCarrito(id) {
+            const p = productos.find(x => x.id === id);
+            const enCart = carrito.find(x => x.id === id);
+            if(p.stock <= (enCart ? enCart.cantidad : 0)) return alert("Stock insuficiente");
+            
+            if(enCart) enCart.cantidad++;
+            else carrito.push({...p, cantidad: 1});
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const items = document.getElementById('cart-items');
+            if(!items) return;
+            items.innerHTML = carrito.length === 0 ? `<div class="text-center py-20 text-gray-300 font-bold text-xs uppercase tracking-widest">Carrito Vacío</div>` :
+                carrito.map(i => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div><p class="font-bold text-gray-700 text-sm">${i.nombre}</p><p class="text-[10px] text-gray-400 font-bold uppercase">Cant: ${i.cantidad}</p></div>
+                        <b class="text-blue-600">$${(i.precio*i.cantidad).toFixed(2)}</b>
+                    </div>
+                `).join('');
+            
+            const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
+        }
+
+        function cobrar() {
+            if(carrito.length === 0) return;
+            const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            const costo = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
+            
+            carrito.forEach(item => {
+                const p = productos.find(x => x.id === item.id);
+                if(p) p.stock -= item.cantidad;
+            });
+
+            const historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            historial.push({ fecha: new Date().toLocaleString(), total, costo });
+            
+            localStorage.setItem('historial_ventas', JSON.stringify(historial));
+            localStorage.setItem('productos', JSON.stringify(productos));
+            
+            alert("Venta completada");
+            carrito = [];
+            showSection('pos');
+        }
+
+        function renderInventory(container) {
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-black italic">INVENTARIO</h2>
+                    <button onclick="localStorage.clear(); location.reload();" class="text-red-400 text-[10px] font-black underline uppercase tracking-widest">Resetear Base de Datos</button>
+                </div>
+                <div class="space-y-2">
+                    ${productos.map(p => `
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                <img src="${p.img}" onerror="handleImgError(this)" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 font-bold uppercase text-sm">${p.nombre}</div>
+                            <div class="w-32 text-center text-xs font-bold text-gray-400">STOCK: <span class="text-blue-600">${p.stock}</span></div>
+                            <div class="w-32 text-right font-black text-gray-800">$${p.precio.toFixed(2)}</div>
+                        </div>
+                    `).join('')}
+                </div>`;
+        }
+
+        function renderReports(container) {
+            const historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            const ingresos = historial.reduce((s, v) => s + v.total, 0);
+            const costos = historial.reduce((s, v) => s + v.costo, 0);
+            container.innerHTML = `
+                <h2 class="text-2xl font-black mb-6 italic">REPORTES</h2>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-blue-600 p-8 rounded-[40px] text-white shadow-xl shadow-blue-100">
+                        <p class="text-[10px] font-bold uppercase opacity-70">Ingresos Totales</p>
+                        <p class="text-4xl font-black">$${ingresos.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-emerald-500 p-8 rounded-[40px] text-white shadow-xl shadow-emerald-100">
+                        <p class="text-[10px] font-bold uppercase opacity-70">Ganancia Neta</p>
+                        <p class="text-4xl font-black">$${(ingresos - costos).toFixed(2)}</p>
+                    </div>
+                </div>`;
+        }
+
+        document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        window.onload = () => showSection('pos');
+    </script>
+</body>
+</html>
