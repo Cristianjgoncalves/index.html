@@ -19,7 +19,9 @@
             </button>
         </nav>
     </div>
+    
     <main id="main-content" class="flex-1 p-8 overflow-y-auto"></main>
+
     <script>
         let productos = JSON.parse(localStorage.getItem('productos')) || [
             { id: 1, nombre: "Manzana Roja", precio: 45.0, stock: 19.0, unidad: "kg" },
@@ -28,17 +30,19 @@
             { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, stock: 100, unidad: "unidad" }
         ];
         let carrito = [];
+
         function showSection(name) {
             const content = document.getElementById('main-content');
             if(name === 'pos') renderPOS(content);
             if(name === 'inventory') renderInventory(content);
         }
+
         function renderPOS(container) {
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
                     <div class="flex-1 grid grid-cols-2 gap-4">
                         ${productos.map(p => `
-                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow border hover:bg-blue-50 cursor-pointer text-center">
+                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow border hover:bg-blue-50 cursor-pointer text-center h-fit">
                                 <h3 class="font-bold text-gray-700">${p.nombre}</h3>
                                 <p class="text-blue-600 font-bold">$${p.precio.toFixed(2)}</p>
                                 <p class="text-[10px] text-gray-400">${p.stock} ${p.unidad} disp.</p>
@@ -50,26 +54,43 @@
                         <div id="cart-items" class="flex-1 space-y-2 text-sm overflow-y-auto"></div>
                         <div class="border-t pt-4 mt-4">
                             <p class="font-bold text-xl text-blue-700">Total: <span id="total-price">$0.00</span></p>
-                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-3 rounded-xl mt-4 font-bold">COBRAR</button>
+                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-3 rounded-xl mt-4 font-bold hover:bg-blue-700 transition">COBRAR</button>
                         </div>
                     </div>
                 </div>`;
             updateCartUI();
         }
+
         function agregarAlCarrito(id) {
             const p = productos.find(x => x.id === id);
-            if(p.stock <= 0) return alert("Sin stock");
-            const item = carrito.find(x => x.id === id);
-            if(item) item.cantidad++; else carrito.push({...p, cantidad: 1});
+            const enCarrito = carrito.find(x => x.id === id);
+            const cantEnCarrito = enCarrito ? enCarrito.cantidad : 0;
+
+            if(p.stock <= cantEnCarrito) return alert("Sin stock disponible");
+
+            if(enCarrito) {
+                enCarrito.cantidad++;
+            } else {
+                carrito.push({...p, cantidad: 1});
+            }
             updateCartUI();
         }
+
         function updateCartUI() {
             const items = document.getElementById('cart-items');
             if(!items) return;
-            items.innerHTML = carrito.map(i => <div class="flex justify-between border-b pb-1"><span>${i.nombre} x${i.cantidad}</span><b>$${(i.precio*i.cantidad).toFixed(2)}</b></div>).join('');
+            
+            items.innerHTML = carrito.map(i => `
+                <div class="flex justify-between border-b pb-1">
+                    <span>${i.nombre} x${i.cantidad}</span>
+                    <b>$${(i.precio * i.cantidad).toFixed(2)}</b>
+                </div>
+            `).join('');
+            
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-            document.getElementById('total-price').innerText = $${total.toFixed(2)};
+            document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
         }
+
         function cobrar() {
             if(carrito.length === 0) return;
             carrito.forEach(item => {
@@ -81,17 +102,32 @@
             carrito = [];
             showSection('pos');
         }
+
         function renderInventory(container) {
-            container.innerHTML = `<h2 class="text-2xl font-bold mb-4">Stock</h2>
+            container.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4">Stock</h2>
                 <div class="bg-white rounded shadow overflow-hidden">
                     <table class="w-full text-left">
-                        <tr class="bg-gray-100 font-bold text-gray-500">
-                            <th class="p-4">Producto</th><th class="p-4">Stock</th><th class="p-4">Precio</th>
-                        </tr>
-                        ${productos.map(p => <tr class="border-t"><td class="p-4 font-bold">${p.nombre}</td><td class="p-4 text-blue-600">${p.stock} ${p.unidad}</td><td class="p-4">$${p.precio}</td></tr>).join('')}
+                        <thead class="bg-gray-100 font-bold text-gray-500">
+                            <tr>
+                                <th class="p-4">Producto</th>
+                                <th class="p-4">Stock</th>
+                                <th class="p-4">Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${productos.map(p => `
+                                <tr class="border-t">
+                                    <td class="p-4 font-bold">${p.nombre}</td>
+                                    <td class="p-4 text-blue-600">${p.stock} ${p.unidad}</td>
+                                    <td class="p-4">$${p.precio.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
                     </table>
                 </div>`;
         }
+
         window.onload = () => showSection('pos');
     </script>
 </body>
