@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+[5:27 PM, 1/29/2026] Cris: <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -13,168 +13,122 @@
             <span class="bg-blue-600 text-white p-2 rounded mr-2 text-xs">N</span> Negocio POS
         </div>
         <nav class="flex-1 px-4 space-y-2">
+            <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text…
+[5:36 PM, 1/29/2026] Cris: <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Negocio POS - Sistema de Ventas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex overflow-hidden font-sans">
+    <div class="w-64 bg-white shadow-lg flex flex-col z-10">
+        <div class="p-6 text-2xl font-bold text-blue-600 flex items-center">
+            <span class="bg-blue-600 text-white p-2 rounded mr-2 text-xs">N</span> Negocio POS
+        </div>
+        <nav class="flex-1 px-4 space-y-2">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
                 <i class="fas fa-shopping-cart mr-3"></i> Punto de Venta
             </button>
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
                 <i class="fas fa-boxes mr-3"></i> Inventario
             </button>
-            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
-                <i class="fas fa-chart-line mr-3"></i> Reportes
-            </button>
         </nav>
         <div class="p-4 border-t text-xs text-green-600 bg-green-50">
             <p>● Sistema Activo</p>
-            <p>Control de Stock: ON</p>
         </div>
     </div>
-
     <main id="main-content" class="flex-1 p-8 overflow-y-auto"></main>
 
     <script>
-        // BASE DE DATOS LOCAL
         let productos = JSON.parse(localStorage.getItem('productos')) || [
             { id: 1, nombre: "Manzana Roja", precio: 45.00, costo: 30.00, stock: 19.0, unidad: "kg" },
             { id: 2, nombre: "Leche Entera", precio: 22.00, costo: 16.50, stock: 29.0, unidad: "litro" },
             { id: 3, nombre: "Arroz Premium", precio: 25.00, costo: 18.00, stock: 49.5, unidad: "kg" },
             { id: 4, nombre: "Coca Cola 500ml", precio: 15.00, costo: 10.00, stock: 100, unidad: "unidad" }
         ];
-
         let carrito = [];
 
         function showSection(name) {
             const content = document.getElementById('main-content');
             if(name === 'pos') renderPOS(content);
             if(name === 'inventory') renderInventory(content);
-            if(name === 'reports') renderReports(content);
         }
 
         function renderPOS(container) {
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
-                    <div class="flex-1">
-                        <h2 class="text-xl font-bold mb-4">Productos</h2>
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            ${productos.map(p => `
-                                <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md cursor-pointer text-center transition">
-                                    <h3 class="font-bold text-gray-700">${p.nombre}</h3>
-                                    <p class="text-blue-600 font-bold text-lg">$${p.precio.toFixed(2)}</p>
-                                    <p class="text-[10px] text-gray-400 uppercase">${p.stock} ${p.unidad} disponibles</p>
-                                </div>
-                            `).join('')}
-                        </div>
+                    <div class="flex-1 grid grid-cols-2 md:grid-cols-3 gap-4">
+                        ${productos.map(p => `
+                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow-sm border hover:shadow-md cursor-pointer text-center">
+                                <h3 class="font-bold text-gray-700">${p.nombre}</h3>
+                                <p class="text-blue-600 font-bold">$${p.precio.toFixed(2)}</p>
+                                <p class="text-[10px] text-gray-400 uppercase">${p.stock} ${p.unidad} disp.</p>
+                            </div>
+                        `).join('')}
                     </div>
                     <div class="w-80 bg-white p-4 rounded-xl shadow-lg border flex flex-col">
-                        <h2 class="font-bold border-b pb-2 mb-4 italic">🛒 Ticket de Venta</h2>
-                        <div id="cart-items" class="flex-1 space-y-2 overflow-y-auto text-sm"></div>
+                        <h2 class="font-bold border-b pb-2 mb-4">🛒 Ticket</h2>
+                        <div id="cart-items" class="flex-1 space-y-2 text-sm overflow-y-auto"></div>
                         <div class="border-t pt-4 mt-4">
                             <div class="flex justify-between font-bold text-xl text-blue-700">
                                 <span>TOTAL</span><span id="total-price">$0.00</span>
                             </div>
-                            <button onclick="cobrarYRecuento()" class="w-full bg-blue-600 text-white py-4 rounded-xl mt-4 font-bold shadow-lg hover:bg-blue-700 transition active:scale-95">
-                                COBRAR / TICKET
-                            </button>
+                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-4 rounded-xl mt-4 font-bold">COBRAR</button>
                         </div>
                     </div>
-                </div>
-            `;
+                </div>`;
             updateCartUI();
         }
 
         function agregarAlCarrito(id) {
             const p = productos.find(x => x.id === id);
-            if(p.stock <= 0) return alert("¡Sin Stock disponible!");
-
-            let cantidad = 1;
-            if(p.unidad !== 'unidad') {
-                const res = prompt(¿Cuánto ${p.unidad} de ${p.nombre} lleva?, "1");
-                cantidad = parseFloat(res);
-            }
-
-            if(isNaN(cantidad) || cantidad <= 0 || cantidad > p.stock) return alert("Cantidad no válida");
-
+            if(p.stock <= 0) return alert("Sin stock");
             const item = carrito.find(x => x.id === id);
-            if(item) item.cantidad += cantidad;
-            else carrito.push({...p, cantidad});
-            
+            if(item) item.cantidad++;
+            else carrito.push({...p, cantidad: 1});
             updateCartUI();
         }
 
         function updateCartUI() {
             const items = document.getElementById('cart-items');
             if(!items) return;
-            if(carrito.length === 0) { items.innerHTML = '<p class="text-center text-gray-400">Carrito vacío</p>'; }
-            else {
-                items.innerHTML = carrito.map(i => `
-                    <div class="flex justify-between p-2 bg-gray-50 rounded">
-                        <span>${i.nombre} (x${i.cantidad})</span>
-                        <span class="font-bold">$${(i.precio * i.cantidad).toFixed(2)}</span>
-                    </div>
-                `).join('');
-            }
+            items.innerHTML = carrito.map(i => <div class="flex justify-between bg-gray-50 p-2 rounded"><span>${i.nombre} x${i.cantidad}</span><span class="font-bold">$${(i.precio*i.cantidad).toFixed(2)}</span></div>).join('');
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             document.getElementById('total-price').innerText = $${total.toFixed(2)};
         }
 
-        // --- FUNCIÓN CLAVE: COBRAR, TICKET Y RECUENTO ---
-        function cobrarYRecuento() {
+        function cobrar() {
             if(carrito.length === 0) return;
-
-            // 1. Descontar Stock (Recuento)
             carrito.forEach(item => {
                 const p = productos.find(x => x.id === item.id);
                 if(p) p.stock -= item.cantidad;
             });
-
-            // 2. Generar Ticket (Factura)
-            const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-            const win = window.open('', '_blank');
-            win.document.write(`
-                <div style="font-family:monospace;width:250px;padding:10px;border:1px solid #000;">
-                    <center><h3>NEGOCIO POS</h3><p>TICKET DE VENTA</p></center>
-                    <hr>
-                    ${carrito.map(i => <p>${i.nombre} x${i.cantidad} <span style="float:right">$${(i.precio*i.cantidad).toFixed(2)}</span></p>).join('')}
-                    <hr>
-                    <p><b>TOTAL <span style="float:right">$${total.toFixed(2)}</span></b></p>
-                    <center><p>¡Gracias por su compra!</p></center>
-                </div>
-                <script>window.print(); window.close();<\/script>
-            `);
-
-            // 3. Guardar cambios en la PC
             localStorage.setItem('productos', JSON.stringify(productos));
-            
-            // 4. Limpiar y volver
-            alert("Venta exitosa y Stock actualizado");
+            alert("Venta exitosa. Stock actualizado.");
             carrito = [];
             showSection('pos');
         }
 
         function renderInventory(container) {
-            container.innerHTML = `
-                <h2 class="text-2xl font-bold mb-4">Inventario (Recuento Real)</h2>
+            container.innerHTML = `<h2 class="text-2xl font-bold mb-4">Inventario</h2>
                 <div class="bg-white rounded-xl shadow overflow-hidden">
                     <table class="w-full text-left">
-                        <thead class="bg-gray-100 uppercase text-xs font-bold text-gray-500">
-                            <tr><th class="p-4">Producto</th><th class="p-4">Stock Actual</th><th class="p-4">Precio</th></tr>
+                        <thead class="bg-gray-100 font-bold text-gray-500">
+                            <tr><th class="p-4">Producto</th><th class="p-4">Stock</th><th class="p-4">Precio</th></tr>
                         </thead>
                         <tbody>
                             ${productos.map(p => `
-                                <tr class="border-t hover:bg-gray-50">
-                                    <td class="p-4 font-bold text-gray-700">${p.nombre}</td>
-                                    <td class="p-4 text-blue-600 font-bold">${p.stock.toFixed(2)} ${p.unidad}</td>
-                                    <td class="p-4">$${p.precio.toFixed(2)}</td>
+                                <tr class="border-t">
+                                    <td class="p-4 font-bold">${p.nombre}</td>
+                                    <td class="p-4 text-blue-600">${p.stock} ${p.unidad}</td>
+                                    <td class="p-4">$${p.precio}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
                     </table>
-                </div>
-                <button onclick="localStorage.clear(); location.reload();" class="mt-8 text-xs text-red-400 hover:underline">Reiniciar Inventario Original</button>
-            `;
-        }
-
-        function renderReports(container) {
-            container.innerHTML = <h2 class="text-2xl font-bold mb-4">Reportes</h2><p class="text-gray-500">Próximamente: Ganancia neta diaria.</p>;
+                </div>`;
         }
 
         window.onload = () => showSection('pos');
