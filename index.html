@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén del Repostero - Venta por Peso</title>
+    <title>El Almacén - Gestión Total</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -13,13 +13,16 @@
     <div class="w-64 bg-white shadow-xl flex flex-col z-20">
         <div class="p-6">
             <h1 class="text-xl font-black text-blue-600 leading-tight uppercase">El Almacén <br>del Repostero</h1>
-            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase">Sarmiento 2201</p>
+            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic">Sarmiento 2201</p>
         </div>
         <nav class="flex-1 px-4 space-y-1">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-cash-register mr-3 text-blue-500"></i> Ventas</button>
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario</button>
-            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-line mr-3 text-blue-500"></i> Reportes</button>
+            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-pie mr-3 text-blue-500"></i> Reportes Diarios</button>
         </nav>
+        <div class="p-4 border-t bg-gray-50 text-center">
+            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest">v9.0 - Control de Ganancia</p>
+        </div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -35,7 +38,7 @@
 
     <script>
         let productos = JSON.parse(localStorage.getItem('productos')) || [
-            { id: 1, nombre: "Harina 0000", precio: 120.0, costo: 80.0, stock: 50.0, unidad: "kg", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200" }
+            { id: 1, nombre: "Harina 0000", precio: 120.0, costo: 80.0, stock: 50.0, unidad: "kg", img: "https://via.placeholder.com/200" }
         ];
         let carrito = [];
         let filtroActual = "";
@@ -55,67 +58,62 @@
                         ${filtrados.map(p => `
                             <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:border-blue-500 cursor-pointer transition active:scale-95">
                                 <h3 class="font-black text-[10px] uppercase text-gray-500">${p.nombre}</h3>
-                                <p class="text-blue-600 font-black text-xl">$${p.precio.toFixed(2)} / ${p.unidad}</p>
-                                <p class="text-[9px] font-bold text-gray-300 uppercase italic">Disp: ${p.stock} ${p.unidad}</p>
+                                <p class="text-blue-600 font-black text-xl">$${p.precio.toFixed(2)}</p>
+                                <p class="text-[9px] font-bold text-gray-300 uppercase italic">Stock: ${p.stock} ${p.unidad}</p>
                             </div>
                         `).join('')}
                     </div>
-                    <div class="w-80 bg-white rounded-[32px] shadow-xl p-6 flex flex-col border border-blue-50">
-                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4">Ticket de Venta</h2>
+                    <div class="w-96 bg-white rounded-[32px] shadow-xl p-6 flex flex-col border border-blue-50">
+                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 italic">Ticket de Venta</h2>
                         <div id="cart-list" class="flex-1 overflow-y-auto space-y-2"></div>
                         <div class="pt-4 border-t border-dashed mt-4">
-                            <div class="flex justify-between text-2xl font-black text-blue-900"><span>TOTAL</span><span id="total-txt">$0.00</span></div>
-                            <button onclick="cobrarConTicket()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition">Cobrar e Imprimir</button>
-                            <button onclick="vaciarCarrito()" class="w-full text-red-400 text-[10px] font-bold mt-2 uppercase hover:underline">Vaciar Carrito</button>
+                            <div class="flex justify-between text-2xl font-black text-blue-900 tracking-tighter"><span>TOTAL</span><span id="total-txt">$0.00</span></div>
+                            <button onclick="cobrarConTicket()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-700 transition">Finalizar Venta</button>
                         </div>
                     </div>
                 </div>`;
             renderCart();
         }
 
-        // --- NUEVA LÓGICA DE CANTIDAD ---
         function agregarAlCarrito(id) {
             const p = productos.find(x => x.id === id);
-            
-            // Pregunta la cantidad (ej: 1, 0.5, 1.5)
-            let cantInput = prompt(`¿Qué cantidad de ${p.nombre} lleva? (${p.unidad})`, "1");
-            
-            // Validar que sea un número
+            let cantInput = prompt(`¿Cantidad de ${p.nombre}?`, "1");
             let cantidad = parseFloat(cantInput);
-            
             if (isNaN(cantidad) || cantidad <= 0) return;
-            
-            if (p.stock < cantidad) {
-                alert(`Stock insuficiente. Solo quedan ${p.stock} ${p.unidad}`);
-                return;
-            }
+            if (p.stock < cantidad) return alert("Stock insuficiente");
 
-            const itemExistente = carrito.find(x => x.id === id);
-            if (itemExistente) {
-                itemExistente.cantidad += cantidad;
-            } else {
-                carrito.push({...p, cantidad: cantidad});
-            }
+            carrito.push({ ...p, cantidad: cantidad, precioOriginal: p.precio });
             renderCart();
+        }
+
+        function modificarPrecioCarrito(index) {
+            let nuevoPrecio = parseFloat(prompt("Modificar precio para esta venta:", carrito[index].precio));
+            if (!isNaN(nuevoPrecio) && nuevoPrecio >= 0) {
+                carrito[index].precio = nuevoPrecio;
+                renderCart();
+            }
         }
 
         function renderCart() {
             const list = document.getElementById('cart-list');
             if (!list) return;
-            list.innerHTML = carrito.length === 0 ? '<p class="text-center text-gray-300 text-xs py-10 font-bold uppercase italic">Sin productos</p>' : 
-                carrito.map((i, index) => `
-                <div class="flex justify-between items-center text-xs bg-gray-50 p-2 rounded-lg font-bold group">
-                    <div class="flex flex-col">
-                        <span>${i.nombre}</span>
-                        <span class="text-[10px] text-blue-500">${i.cantidad} ${i.unidad} x $${i.precio}</span>
+            list.innerHTML = carrito.map((i, index) => `
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100 font-bold">
+                    <div class="flex justify-between items-start mb-1">
+                        <span class="text-xs uppercase">${i.nombre}</span>
+                        <button onclick="carrito.splice(${index},1); renderCart()" class="text-red-300 hover:text-red-500"><i class="fas fa-times-circle"></i></button>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span>$${(i.precio * i.cantidad).toFixed(2)}</span>
-                        <button onclick="eliminarDelCarrito(${index})" class="text-red-300 hover:text-red-500 ml-1"><i class="fas fa-times-circle"></i></button>
+                    <div class="flex justify-between items-center text-[10px]">
+                        <div class="flex items-center gap-2">
+                            <span>${i.cantidad} ${i.unidad} x</span>
+                            <div onclick="modificarPrecioCarrito(${index})" class="bg-blue-100 text-blue-700 px-2 py-1 rounded-md cursor-pointer hover:bg-blue-200 transition flex items-center gap-1">
+                                $${i.precio.toFixed(2)} <i class="fas fa-edit text-[8px]"></i>
+                            </div>
+                        </div>
+                        <span class="text-blue-600">$${(i.precio * i.cantidad).toFixed(2)}</span>
                     </div>
                 </div>
             `).join('');
-            
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             document.getElementById('total-txt').innerText = `$${total.toFixed(2)}`;
         }
@@ -123,40 +121,33 @@
         function cobrarConTicket() {
             if (carrito.length === 0) return;
             const totalVenta = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
             
             let pago = parseFloat(prompt(`TOTAL: $${totalVenta.toFixed(2)}\n¿Con cuánto paga el cliente?`, totalVenta));
             if (isNaN(pago) || pago < totalVenta) return alert("Monto insuficiente");
             
-            const vuelto = pago - totalVenta;
-
+            // Lógica de Impresión...
             const win = window.open('', '_blank');
-            win.document.write(`
-                <html>
-                <body style="font-family: 'Courier New', monospace; width: 260px; text-transform: uppercase; font-size: 11px; padding: 10px;">
-                    <center><h2 style="margin:0">EL ALMACÉN</h2><p>Sarmiento 2201</p></center>
-                    <hr style="border:0.5px dashed #000">
-                    ${carrito.map(i => `<p style="margin:5px 0">${i.nombre}<br>${i.cantidad} ${i.unidad} x $${i.precio} <span style="float:right">$${(i.precio*i.cantidad).toFixed(2)}</span></p>`).join('')}
-                    <hr style="border:0.5px dashed #000">
-                    <div style="font-weight:bold; font-size:14px;">TOTAL: <span style="float:right">$${totalVenta.toFixed(2)}</span></div>
-                    <p style="margin:10px 0">RECIBIDO: $${pago.toFixed(2)}<br>VUELTO: $${vuelto.toFixed(2)}</p>
-                    <center><p style="margin-top:20px">*** GRACIAS POR SU COMPRA ***</p></center>
-                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
-                </body>
-                </html>
-            `);
+            win.document.write(`<html><body style="font-family:monospace;width:260px;text-transform:uppercase;padding:10px;">
+                <center><h2>EL ALMACÉN</h2><p>Sarmiento 2201</p></center><hr>
+                ${carrito.map(i => `<p>${i.nombre}<br>${i.cantidad} x $${i.precio} <span style="float:right">$${(i.precio*i.cantidad).toFixed(2)}</span></p>`).join('')}
+                <hr><div style="font-size:14px;font-weight:bold;">TOTAL: <span style="float:right">$${totalVenta.toFixed(2)}</span></div>
+                <p>PAGA: $${pago.toFixed(2)} | VUELTO: $${(pago-totalVenta).toFixed(2)}</p>
+                <script>window.onload=function(){window.print();window.close();}<\/script></body></html>`);
 
-            alert(`VENTA REALIZADA\n-------------------\nVUELTO: $${vuelto.toFixed(2)}`);
-
-            // Descontar Stock
-            const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
+            // Descontar stock y Guardar historial con fecha
             carrito.forEach(item => {
                 const p = productos.find(x => x.id === item.id);
                 if (p) p.stock = parseFloat((p.stock - item.cantidad).toFixed(2));
             });
 
-            // Guardar Historial
             const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            h.push({ fecha: new Date().toLocaleString(), total: totalVenta, costo: costoVenta });
+            h.push({ 
+                fecha: new Date().toLocaleDateString(), 
+                total: totalVenta, 
+                costo: costoVenta,
+                ganancia: totalVenta - costoVenta 
+            });
             localStorage.setItem('historial_ventas', JSON.stringify(h));
             localStorage.setItem('productos', JSON.stringify(productos));
 
@@ -164,30 +155,54 @@
             showSection('pos');
         }
 
-        function eliminarDelCarrito(index) {
-            carrito.splice(index, 1);
-            renderCart();
+        function renderReports(container) {
+            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            
+            // Agrupar por día
+            const resumenPorDia = h.reduce((acc, curr) => {
+                if (!acc[curr.fecha]) acc[curr.fecha] = { total: 0, ganancia: 0 };
+                acc[curr.fecha].total += curr.total;
+                acc[curr.fecha].ganancia += curr.ganancia;
+                return acc;
+            }, {});
+
+            container.innerHTML = `
+                <h2 class="text-2xl font-black mb-6 uppercase italic tracking-widest text-blue-600">Reporte de Ganancias Diarias</h2>
+                <div class="grid grid-cols-1 gap-4">
+                    <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="p-4 text-[10px] font-black uppercase text-gray-400">Fecha</th>
+                                    <th class="p-4 text-[10px] font-black uppercase text-gray-400">Ventas Totales</th>
+                                    <th class="p-4 text-[10px] font-black uppercase text-gray-400">Ganancia Real</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.keys(resumenPorDia).reverse().map(dia => `
+                                    <tr class="border-b hover:bg-gray-50 transition">
+                                        <td class="p-4 font-bold text-gray-600">${dia}</td>
+                                        <td class="p-4 font-black text-gray-800">$${resumenPorDia[dia].total.toFixed(2)}</td>
+                                        <td class="p-4 font-black text-green-600">$${resumenPorDia[dia].ganancia.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
         }
 
-        function vaciarCarrito() {
-            if(confirm("¿Vaciar ticket actual?")) {
-                carrito = [];
-                renderCart();
-            }
-        }
-
+        // Resto de funciones (Inventario, Buscador, etc.)
         function renderInventory(container) {
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-black uppercase italic">Inventario</h2>
-                <button onclick="agregarNuevo()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-blue-700 transition">+ NUEVO PRODUCTO</button></div>
+                <button onclick="agregarNuevo()" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold">+ PRODUCTO</button></div>
                 <div class="grid grid-cols-1 gap-2">${productos.map(p => `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center group">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-blue-50 text-blue-400 flex items-center justify-center rounded-lg font-black uppercase text-[10px]">${p.unidad}</div>
-                            <div><p class="font-black text-xs uppercase text-gray-700">${p.nombre}</p><p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Costo: $${p.costo} | Venta: $${p.precio}</p></div>
-                        </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm border flex justify-between items-center">
+                        <div><p class="font-black text-xs uppercase text-gray-700">${p.nombre}</p><p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Costo: $${p.costo} | Venta: $${p.precio}</p></div>
                         <div class="flex items-center gap-6">
-                            <div class="text-right"><p class="text-[9px] text-gray-300 font-bold uppercase">Stock</p><p class="font-black text-blue-600">${p.stock} ${p.unidad}</p></div>
+                            <div class="text-right"><p class="text-[9px] text-gray-300 font-bold uppercase italic">Disponible</p><p class="font-black text-blue-600">${p.stock} ${p.unidad}</p></div>
                             <div class="flex gap-2">
                                 <button onclick="editarProducto(${p.id})" class="text-gray-300 hover:text-blue-500 p-2"><i class="fas fa-edit"></i></button>
                                 <button onclick="borrarProducto(${p.id})" class="text-gray-300 hover:text-red-500 p-2"><i class="fas fa-trash"></i></button>
@@ -198,13 +213,13 @@
         }
 
         function agregarNuevo() {
-            const n = prompt("Nombre del producto:"); if (!n) return;
+            const n = prompt("Nombre:"); if (!n) return;
             productos.push({
                 id: Date.now(), nombre: n, 
-                costo: parseFloat(prompt("Precio de Costo (tu gasto):", "0")), 
-                precio: parseFloat(prompt("Precio de Venta (al público):", "0")), 
-                stock: parseFloat(prompt("Stock inicial:", "0")), 
-                unidad: prompt("Unidad de medida (kg, gr, unid, pack):", "kg"),
+                costo: parseFloat(prompt("Costo:", "0")), 
+                precio: parseFloat(prompt("Venta:", "0")), 
+                stock: parseFloat(prompt("Stock:", "0")), 
+                unidad: prompt("Unidad:", "kg"),
                 img: "https://via.placeholder.com/200"
             });
             localStorage.setItem('productos', JSON.stringify(productos));
@@ -222,35 +237,11 @@
         }
 
         function borrarProducto(id) {
-            if(confirm("¿Eliminar definitivamente?")) { 
-                productos = productos.filter(x => x.id !== id); 
-                localStorage.setItem('productos', JSON.stringify(productos)); 
-                showSection('inventory'); 
-            }
+            if(confirm("¿Borrar?")) { productos = productos.filter(x => x.id !== id); localStorage.setItem('productos', JSON.stringify(productos)); showSection('inventory'); }
         }
 
-        function renderReports(container) {
-            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            const ing = h.reduce((s, v) => s + v.total, 0);
-            const cos = h.reduce((s, v) => s + v.costo, 0);
-            container.innerHTML = `
-                <h2 class="text-2xl font-black mb-6 uppercase italic tracking-widest">Resumen de Caja</h2>
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-white p-8 rounded-[40px] shadow-xl border-t-8 border-blue-600"><p class="text-xs font-bold text-gray-400 uppercase">Ingresos Totales</p><p class="text-4xl font-black text-gray-800">$${ing.toFixed(2)}</p></div>
-                    <div class="bg-white p-8 rounded-[40px] shadow-xl border-t-8 border-green-500"><p class="text-xs font-bold text-gray-400 uppercase">Ganancia Limpia</p><p class="text-4xl font-black text-green-600">$${(ing-cos).toFixed(2)}</p></div>
-                </div>`;
-        }
-
-        function filtrarProductos() { 
-            filtroActual = document.getElementById('buscador').value.toLowerCase(); 
-            showSection('pos'); 
-        }
-        
-        setInterval(() => { 
-            const r = document.getElementById('reloj'); 
-            if(r) r.innerText = new Date().toLocaleTimeString(); 
-        }, 1000);
-
+        function filtrarProductos() { filtroActual = document.getElementById('buscador').value.toLowerCase(); showSection('pos'); }
+        setInterval(() => { const r = document.getElementById('reloj'); if(r) r.innerText = new Date().toLocaleTimeString(); }, 1000);
         window.onload = () => showSection('pos');
     </script>
 </body>
