@@ -3,132 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Negocio POS</title>
+    <title>Negocio POS Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 h-screen flex overflow-hidden font-sans">
-    <div class="w-64 bg-white shadow-lg flex flex-col">
-        <div class="p-6 text-2xl font-bold text-blue-600">Negocio POS</div>
-        <nav class="flex-1 px-4 space-y-2">
-            <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
-                <i class="fas fa-shopping-cart mr-3"></i> Ventas
-            </button>
-            <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-lg text-gray-600 font-semibold transition">
-                <i class="fas fa-boxes mr-3"></i> Inventario
-            </button>
+<body class="bg-gray-100 h-screen flex overflow-hidden font-sans text-gray-800">
+
+    <div class="w-64 bg-white shadow-xl flex flex-col z-20">
+        <div class="p-6 text-2xl font-black text-blue-600 tracking-tighter italic">NEGOCIO POS</div>
+        <nav class="flex-1 px-4 space-y-1">
+            <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-cash-register mr-3 text-blue-500"></i> Ventas</button>
+            <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario</button>
+            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-line mr-3 text-blue-500"></i> Reportes</button>
         </nav>
+        <div class="p-4 border-t"><div class="bg-blue-600 text-white text-[10px] p-2 rounded-lg text-center font-bold uppercase">v2.0 - Sistema Pro</div></div>
     </div>
-    
-    <main id="main-content" class="flex-1 p-8 overflow-y-auto"></main>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white p-4 shadow-sm border-b flex justify-between items-center">
+            <div class="relative w-96">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="buscador" onkeyup="filtrarProductos()" placeholder="Escribe para buscar..." class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+            <div class="text-sm font-bold text-gray-500" id="fecha-actual"></div>
+        </header>
+
+        <main id="main-content" class="flex-1 p-6 overflow-y-auto"></main>
+    </div>
 
     <script>
         let productos = JSON.parse(localStorage.getItem('productos')) || [
-            { id: 1, nombre: "Manzana Roja", precio: 45.0, stock: 19.0, unidad: "kg" },
-            { id: 2, nombre: "Leche Entera", precio: 22.0, stock: 29.0, unidad: "litro" },
-            { id: 3, nombre: "Arroz Premium", precio: 25.0, stock: 49.5, unidad: "kg" },
-            { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, stock: 100, unidad: "unidad" }
+            { id: 1, nombre: "Manzana Roja", precio: 45.0, costo: 30.0, stock: 19.0, unidad: "kg", img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6bccb?w=200" },
+            { id: 2, nombre: "Leche Entera", precio: 22.0, costo: 16.5, stock: 29.0, unidad: "litro", img: "https://images.unsplash.com/photo-1563636619-e9107da5a1bb?w=200" },
+            { id: 3, nombre: "Arroz Premium", precio: 25.0, costo: 18.0, stock: 49.5, unidad: "kg", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200" },
+            { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, costo: 10.0, stock: 100, unidad: "unidad", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200" }
         ];
+
         let carrito = [];
+        let filtroActual = "";
+
+        function filtrarProductos() {
+            filtroActual = document.getElementById('buscador').value.toLowerCase();
+            renderPOS(document.getElementById('main-content'));
+        }
 
         function showSection(name) {
             const content = document.getElementById('main-content');
             if(name === 'pos') renderPOS(content);
             if(name === 'inventory') renderInventory(content);
+            if(name === 'reports') renderReports(content);
         }
 
         function renderPOS(container) {
+            const productosFiltrados = productos.filter(p => p.nombre.toLowerCase().includes(filtroActual));
+            
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
-                    <div class="flex-1 grid grid-cols-2 gap-4">
-                        ${productos.map(p => `
-                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white p-4 rounded-xl shadow border hover:bg-blue-50 cursor-pointer text-center h-fit">
-                                <h3 class="font-bold text-gray-700">${p.nombre}</h3>
-                                <p class="text-blue-600 font-bold">$${p.precio.toFixed(2)}</p>
-                                <p class="text-[10px] text-gray-400">${p.stock} ${p.unidad} disp.</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="w-72 bg-white p-4 rounded-xl shadow-lg border flex flex-col">
-                        <h2 class="font-bold border-b pb-2 mb-4">Ticket</h2>
-                        <div id="cart-items" class="flex-1 space-y-2 text-sm overflow-y-auto"></div>
-                        <div class="border-t pt-4 mt-4">
-                            <p class="font-bold text-xl text-blue-700">Total: <span id="total-price">$0.00</span></p>
-                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-3 rounded-xl mt-4 font-bold hover:bg-blue-700 transition">COBRAR</button>
-                        </div>
-                    </div>
-                </div>`;
-            updateCartUI();
-        }
-
-        function agregarAlCarrito(id) {
-            const p = productos.find(x => x.id === id);
-            const enCarrito = carrito.find(x => x.id === id);
-            const cantEnCarrito = enCarrito ? enCarrito.cantidad : 0;
-
-            if(p.stock <= cantEnCarrito) return alert("Sin stock disponible");
-
-            if(enCarrito) {
-                enCarrito.cantidad++;
-            } else {
-                carrito.push({...p, cantidad: 1});
-            }
-            updateCartUI();
-        }
-
-        function updateCartUI() {
-            const items = document.getElementById('cart-items');
-            if(!items) return;
-            
-            items.innerHTML = carrito.map(i => `
-                <div class="flex justify-between border-b pb-1">
-                    <span>${i.nombre} x${i.cantidad}</span>
-                    <b>$${(i.precio * i.cantidad).toFixed(2)}</b>
-                </div>
-            `).join('');
-            
-            const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-            document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
-        }
-
-        function cobrar() {
-            if(carrito.length === 0) return;
-            carrito.forEach(item => {
-                const p = productos.find(x => x.id === item.id);
-                if(p) p.stock -= item.cantidad;
-            });
-            localStorage.setItem('productos', JSON.stringify(productos));
-            alert("Venta procesada y stock actualizado");
-            carrito = [];
-            showSection('pos');
-        }
-
-        function renderInventory(container) {
-            container.innerHTML = `
-                <h2 class="text-2xl font-bold mb-4">Stock</h2>
-                <div class="bg-white rounded shadow overflow-hidden">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-100 font-bold text-gray-500">
-                            <tr>
-                                <th class="p-4">Producto</th>
-                                <th class="p-4">Stock</th>
-                                <th class="p-4">Precio</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${productos.map(p => `
-                                <tr class="border-t">
-                                    <td class="p-4 font-bold">${p.nombre}</td>
-                                    <td class="p-4 text-blue-600">${p.stock} ${p.unidad}</td>
-                                    <td class="p-4">$${p.precio.toFixed(2)}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>`;
-        }
-
-        window.onload = () => showSection('pos');
-    </script>
-</body>
-</html>
+                    <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 content-start">
+                        ${productosFiltrados.map(p => `
+                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer overflow-hidden group">
+                                <div class="h-32 overflow-hidden bg-gray-100">
+                                    <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
+                                </div>
+                                <div class="p-4 text-center">
+                                    <h3 class="font-black text-gray-800 uppercase text-xs">${p.nombre}</h3>
+                                    <p class="text-blue-600 font-black text-xl mt-1">$${
