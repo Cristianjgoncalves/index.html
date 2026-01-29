@@ -1,70 +1,48 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Negocio POS Pro - Fix Imágenes</title>
+    <title>El Almacén del Repostero - POS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        /* Estilo para cuando la imagen no carga */
-        .img-fallback {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f3f4f6;
-            color: #d1d5db;
-            height: 100%;
-            width: 100%;
-        }
-    </style>
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden font-sans text-gray-800">
 
     <div class="w-64 bg-white shadow-xl flex flex-col z-20">
-        <div class="p-6 text-2xl font-black text-blue-600 tracking-tighter italic">NEGOCIO POS</div>
+        <div class="p-6">
+            <h1 class="text-xl font-black text-blue-600 leading-tight uppercase tracking-tighter">El Almacén <br>del Repostero</h1>
+            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic">Sarmiento 2201</p>
+        </div>
         <nav class="flex-1 px-4 space-y-1">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-cash-register mr-3 text-blue-500"></i> Ventas</button>
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario</button>
             <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-chart-line mr-3 text-blue-500"></i> Reportes</button>
         </nav>
-        <div class="p-4 border-t"><div class="bg-blue-600 text-white text-[10px] p-2 rounded-lg text-center font-bold uppercase tracking-widest">Sistema Pro Activo</div></div>
+        <div class="p-4 border-t bg-gray-50"><div class="bg-blue-600 text-white text-[10px] p-2 rounded-lg text-center font-black uppercase tracking-widest">Sistema Oficial</div></div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="bg-white p-4 shadow-sm border-b flex justify-between items-center">
+        <header class="bg-white p-4 shadow-sm border-b flex justify-between items-center px-8">
             <div class="relative w-96">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                <input type="text" id="buscador" onkeyup="filtrarProductos()" placeholder="Buscar producto..." class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                <input type="text" id="buscador" onkeyup="filtrarProductos()" placeholder="Buscar producto por nombre..." class="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
-            <div id="fecha-actual" class="text-sm font-bold text-gray-400 uppercase tracking-tighter"></div>
+            <div id="reloj" class="font-black text-gray-500 text-sm"></div>
         </header>
-
         <main id="main-content" class="flex-1 p-6 overflow-y-auto"></main>
     </div>
 
     <script>
-        // Si tienes imágenes en una carpeta, cambia las URLs por "img/manzana.jpg", etc.
         let productos = JSON.parse(localStorage.getItem('productos')) || [
-            { id: 1, nombre: "Manzana Roja", precio: 45.0, costo: 30.0, stock: 19, unidad: "kg", img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6bccb?w=400" },
-            { id: 2, nombre: "Leche Entera", precio: 22.0, costo: 16.5, stock: 29, unidad: "litro", img: "https://images.unsplash.com/photo-1563636619-e9107da5a1bb?w=400" },
-            { id: 3, nombre: "Arroz Premium", precio: 25.0, costo: 18.0, stock: 49, unidad: "kg", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400" },
-            { id: 4, nombre: "Coca Cola 500ml", precio: 15.0, costo: 10.0, stock: 100, unidad: "unidad", img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400" }
+            { id: 1, nombre: "Manzana Roja", precio: 45.0, costo: 30.0, stock: 50.0, unidad: "kg", img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6bccb?w=400" },
+            { id: 2, nombre: "Leche Entera", precio: 22.0, costo: 16.5, stock: 30.0, unidad: "litro", img: "https://images.unsplash.com/photo-1563636619-e9107da5a1bb?w=400" },
+            { id: 3, nombre: "Arroz Premium", precio: 25.0, costo: 18.0, stock: 100.0, unidad: "kg", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400" }
         ];
 
         let carrito = [];
         let filtroActual = "";
-
-        // FUNCIÓN CLAVE: Maneja imágenes rotas
-        function handleImgError(img) {
-            img.onerror = null; 
-            img.parentElement.innerHTML = `<div class="img-fallback"><i class="fas fa-box text-3xl"></i></div>`;
-        }
-
-        function filtrarProductos() {
-            filtroActual = document.getElementById('buscador').value.toLowerCase();
-            renderPOS(document.getElementById('main-content'));
-        }
 
         function showSection(name) {
             const content = document.getElementById('main-content');
@@ -73,56 +51,61 @@
             if(name === 'reports') renderReports(content);
         }
 
+        function filtrarProductos() {
+            filtroActual = document.getElementById('buscador').value.toLowerCase();
+            renderPOS(document.getElementById('main-content'));
+        }
+
         function renderPOS(container) {
             const filtrados = productos.filter(p => p.nombre.toLowerCase().includes(filtroActual));
             container.innerHTML = `
                 <div class="flex gap-6 h-full">
                     <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 content-start">
                         ${filtrados.map(p => `
-                            <div onclick="agregarAlCarrito(${p.id})" class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl hover:border-blue-300 transition-all cursor-pointer overflow-hidden group">
-                                <div class="h-32 bg-gray-100 overflow-hidden relative">
-                                    <img src="${p.img}" onerror="handleImgError(this)" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                                </div>
-                                <div class="p-4">
-                                    <h3 class="font-black text-gray-800 uppercase text-[10px] mb-1">${p.nombre}</h3>
-                                    <p class="text-blue-600 font-black text-xl">$${p.precio.toFixed(2)}</p>
-                                    <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic">${p.stock} ${p.unidad} disponibles</p>
+                            <div onclick="preguntarCantidad(${p.id})" class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-xl transition-all cursor-pointer overflow-hidden group border-b-4 hover:border-blue-500">
+                                <div class="h-24 bg-gray-100 overflow-hidden"><img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500"></div>
+                                <div class="p-3">
+                                    <h3 class="font-black text-gray-700 uppercase text-[10px] truncate">${p.nombre}</h3>
+                                    <p class="text-blue-600 font-black text-lg">$${p.precio.toFixed(2)}</p>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-tighter italic">Stock: ${p.stock} ${p.unidad}</p>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <div class="w-96 bg-white rounded-[32px] shadow-2xl border p-6 flex flex-col">
-                        <h2 class="font-black text-gray-400 text-[10px] uppercase tracking-widest mb-4">Ticket de Venta</h2>
-                        <div id="cart-items" class="flex-1 space-y-2 overflow-y-auto pr-2"></div>
-                        <div class="border-t-2 border-dashed pt-4 mt-4">
-                            <div class="flex justify-between items-center text-2xl font-black text-blue-900">
-                                <span>TOTAL</span><span id="total-price">$0.00</span>
-                            </div>
-                            <button onclick="cobrar()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-4 font-black shadow-lg shadow-blue-100 hover:bg-blue-700 active:scale-95 transition">COBRAR</button>
+                    <div class="w-80 bg-white rounded-[32px] shadow-2xl border p-6 flex flex-col border-blue-50">
+                        <h2 class="font-black text-gray-400 text-[10px] mb-4 uppercase tracking-[0.2em]">Carrito de Venta</h2>
+                        <div id="cart-items" class="flex-1 space-y-3 overflow-y-auto"></div>
+                        <div class="border-t-2 border-dashed pt-6 mt-6">
+                            <div class="flex justify-between text-2xl font-black text-blue-900 tracking-tighter"><span>TOTAL</span><span id="total-price">$0.00</span></div>
+                            <button onclick="imprimirTicket()" class="w-full bg-blue-600 text-white py-4 rounded-2xl mt-6 font-black shadow-lg shadow-blue-100 active:scale-95 transition uppercase tracking-widest text-xs">Finalizar y Ticket</button>
                         </div>
                     </div>
                 </div>`;
             updateCartUI();
         }
 
-        function agregarAlCarrito(id) {
+        function preguntarCantidad(id) {
             const p = productos.find(x => x.id === id);
-            const enCart = carrito.find(x => x.id === id);
-            if(p.stock <= (enCart ? enCart.cantidad : 0)) return alert("Stock insuficiente");
-            
-            if(enCart) enCart.cantidad++;
-            else carrito.push({...p, cantidad: 1});
-            updateCartUI();
+            let cant = prompt(`Cantidad de ${p.nombre} (${p.unidad}):\n(Ej: 0.5 para medio kilo)`, "1");
+            let n = parseFloat(cant);
+            if(!isNaN(n) && n > 0 && n <= p.stock) {
+                const item = carrito.find(x => x.id === id);
+                if(item) item.cantidad += n; else carrito.push({...p, cantidad: n});
+                updateCartUI();
+            } else if (n > p.stock) alert("No hay stock suficiente.");
         }
 
         function updateCartUI() {
             const items = document.getElementById('cart-items');
             if(!items) return;
-            items.innerHTML = carrito.length === 0 ? `<div class="text-center py-20 text-gray-300 font-bold text-xs uppercase tracking-widest">Carrito Vacío</div>` :
+            items.innerHTML = carrito.length === 0 ? '<div class="text-center py-10 text-gray-200 font-black uppercase text-xs">Vacio</div>' : 
                 carrito.map(i => `
                     <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <div><p class="font-bold text-gray-700 text-sm">${i.nombre}</p><p class="text-[10px] text-gray-400 font-bold uppercase">Cant: ${i.cantidad}</p></div>
-                        <b class="text-blue-600">$${(i.precio*i.cantidad).toFixed(2)}</b>
+                        <div class="text-[10px] font-bold">
+                            <p class="text-gray-700 uppercase">${i.nombre}</p>
+                            <p class="text-blue-400 font-black">${i.cantidad} ${i.unidad}</p>
+                        </div>
+                        <b class="text-gray-800">$${(i.precio*i.cantidad).toFixed(2)}</b>
                     </div>
                 `).join('');
             
@@ -130,66 +113,87 @@
             document.getElementById('total-price').innerText = `$${total.toFixed(2)}`;
         }
 
-        function cobrar() {
+        function imprimirTicket() {
             if(carrito.length === 0) return;
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-            const costo = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
+            let pago = parseFloat(prompt(`TOTAL A PAGAR: $${total.toFixed(2)}\n¿Con cuánto abona el cliente?`, total));
             
+            if(isNaN(pago) || pago < total) return alert("Monto insuficiente.");
+            let vuelto = pago - total;
+
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <body style="font-family: 'Courier New', monospace; width: 280px; text-transform: uppercase;">
+                    <center>
+                        <h2 style="margin:0;">EL ALMACÉN</h2>
+                        <h3 style="margin:0;">DEL REPOSTERO</h3>
+                        <p style="font-size:10px;">Sarmiento 2201</p>
+                        <p style="font-size:10px;">${new Date().toLocaleString()}</p>
+                    </center>
+                    <hr style="border:1px dashed #000">
+                    <table style="width:100%; font-size:12px;">
+                        ${carrito.map(i => `<tr><td>${i.nombre} (${i.cantidad})</td><td style="text-align:right;">$${(i.precio*i.cantidad).toFixed(2)}</td></tr>`).join('')}
+                    </table>
+                    <hr style="border:1px dashed #000">
+                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+                        <span>TOTAL:</span><span>$${total.toFixed(2)}</span>
+                    </div>
+                    <p style="font-size:12px;">PAGA CON: $${pago.toFixed(2)}<br>VUELTO: $${vuelto.toFixed(2)}</p>
+                    <hr style="border:1px dashed #000">
+                    <center><p style="font-size:10px;">¡Gracias por elegirnos!</p></center>
+                    <script>window.onload = function() { window.print(); window.close(); }<\/script>
+                </body>
+                </html>
+            `);
+
+            // Descontar Stock y Guardar
+            const costoTotal = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
             carrito.forEach(item => {
                 const p = productos.find(x => x.id === item.id);
-                if(p) p.stock -= item.cantidad;
+                if(p) p.stock = parseFloat((p.stock - item.cantidad).toFixed(2));
             });
-
-            const historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            historial.push({ fecha: new Date().toLocaleString(), total, costo });
-            
-            localStorage.setItem('historial_ventas', JSON.stringify(historial));
+            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            h.push({ fecha: new Date().toLocaleDateString(), total, costo: costoTotal });
+            localStorage.setItem('historial_ventas', JSON.stringify(h));
             localStorage.setItem('productos', JSON.stringify(productos));
             
-            alert("Venta completada");
             carrito = [];
             showSection('pos');
         }
 
         function renderInventory(container) {
-            container.innerHTML = `
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-black italic">INVENTARIO</h2>
-                    <button onclick="localStorage.clear(); location.reload();" class="text-red-400 text-[10px] font-black underline uppercase tracking-widest">Resetear Base de Datos</button>
-                </div>
-                <div class="space-y-2">
+            container.innerHTML = `<h2 class="text-2xl font-black mb-6 uppercase tracking-widest italic">Stock de Mercadería</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     ${productos.map(p => `
-                        <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center gap-4">
-                            <div class="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                <img src="${p.img}" onerror="handleImgError(this)" class="w-full h-full object-cover">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <img src="${p.img}" class="w-12 h-12 rounded-lg object-cover shadow-sm">
+                                <p class="font-black text-gray-700 text-xs uppercase">${p.nombre}</p>
                             </div>
-                            <div class="flex-1 font-bold uppercase text-sm">${p.nombre}</div>
-                            <div class="w-32 text-center text-xs font-bold text-gray-400">STOCK: <span class="text-blue-600">${p.stock}</span></div>
-                            <div class="w-32 text-right font-black text-gray-800">$${p.precio.toFixed(2)}</div>
+                            <p class="font-black text-blue-600">${p.stock} ${p.unidad}</p>
+                            <p class="font-black text-gray-800">$${p.precio.toFixed(2)}</p>
                         </div>
                     `).join('')}
                 </div>`;
         }
 
         function renderReports(container) {
-            const historial = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            const ingresos = historial.reduce((s, v) => s + v.total, 0);
-            const costos = historial.reduce((s, v) => s + v.costo, 0);
-            container.innerHTML = `
-                <h2 class="text-2xl font-black mb-6 italic">REPORTES</h2>
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-blue-600 p-8 rounded-[40px] text-white shadow-xl shadow-blue-100">
-                        <p class="text-[10px] font-bold uppercase opacity-70">Ingresos Totales</p>
-                        <p class="text-4xl font-black">$${ingresos.toFixed(2)}</p>
-                    </div>
-                    <div class="bg-emerald-500 p-8 rounded-[40px] text-white shadow-xl shadow-emerald-100">
-                        <p class="text-[10px] font-bold uppercase opacity-70">Ganancia Neta</p>
-                        <p class="text-4xl font-black">$${(ingresos - costos).toFixed(2)}</p>
-                    </div>
+            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            const ing = h.reduce((s, v) => s + v.total, 0);
+            const cos = h.reduce((s, v) => s + v.costo, 0);
+            container.innerHTML = `<h2 class="text-2xl font-black mb-8 uppercase italic tracking-widest">Resumen de Caja</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white p-10 rounded-[40px] shadow-2xl border-t-8 border-blue-600"><p class="text-xs font-bold text-gray-400 uppercase">Caja Total</p><p class="text-5xl font-black text-gray-800 mt-2">$${ing.toFixed(2)}</p></div>
+                    <div class="bg-white p-10 rounded-[40px] shadow-2xl border-t-8 border-green-500"><p class="text-xs font-bold text-gray-400 uppercase">Ganancia Limpia</p><p class="text-5xl font-black text-green-600 mt-2">$${(ing-cos).toFixed(2)}</p></div>
                 </div>`;
         }
 
-        document.getElementById('fecha-actual').innerText = new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        setInterval(() => { 
+            const el = document.getElementById('reloj');
+            if(el) el.innerText = new Date().toLocaleTimeString(); 
+        }, 1000);
+        
         window.onload = () => showSection('pos');
     </script>
 </body>
