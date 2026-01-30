@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén del Repostero v18</title>
+    <title>El Almacén del Repostero v19</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -173,6 +173,7 @@
             });
 
             historialVentas.push({ 
+                id: Date.now(), // ID único para borrar
                 fecha: new Date().toLocaleDateString(), 
                 hora: new Date().toLocaleTimeString(),
                 total: totalVenta, 
@@ -213,9 +214,6 @@
                     </div>
                 </div>
                 <div class="space-y-2 pb-10">
-                    <div class="hidden md:grid grid-cols-6 px-6 text-[10px] font-black text-gray-400 uppercase">
-                        <div class="col-span-2">Producto</div><div>Costo</div><div>Venta</div><div>Stock</div><div class="text-right">Borrar</div>
-                    </div>
                     ${productos.map((p, index) => `
                         <div class="bg-white p-3 rounded-2xl shadow-sm border grid grid-cols-6 gap-3 items-center">
                             <div class="col-span-2 font-black text-xs uppercase text-gray-700">${p.nombre}</div>
@@ -239,100 +237,99 @@
             localStorage.setItem('productos', JSON.stringify(productos));
             showSection('inventory');
         }
-        function borrarProducto(id) { if(confirm("¿Borrar?")) { productos = productos.filter(x => x.id !== id); localStorage.setItem('productos', JSON.stringify(productos)); showSection('inventory'); } }
+        function borrarProducto(id) { if(confirm("¿Borrar producto?")) { productos = productos.filter(x => x.id !== id); localStorage.setItem('productos', JSON.stringify(productos)); showSection('inventory'); } }
 
         // --- GASTOS ---
         function agregarGasto() {
-            const desc = prompt("Descripción del gasto (ej: Flete, Luz):");
+            const desc = prompt("Descripción del gasto:");
             const monto = parseFloat(prompt("Monto del gasto:"));
             if(!desc || isNaN(monto)) return;
-            
-            gastos.push({
-                fecha: new Date().toLocaleDateString(),
-                desc: desc.toUpperCase(),
-                monto: monto
-            });
+            gastos.push({ id: Date.now(), fecha: new Date().toLocaleDateString(), desc: desc.toUpperCase(), monto: monto });
             localStorage.setItem('gastos', JSON.stringify(gastos));
             showSection('reports');
         }
 
-        // --- REPORTES Y RESPALDO ---
+        function borrarGasto(id) {
+            if(confirm("¿Borrar este gasto?")) {
+                gastos = gastos.filter(g => g.id !== id);
+                localStorage.setItem('gastos', JSON.stringify(gastos));
+                showSection('reports');
+            }
+        }
+
+        function borrarVenta(id) {
+            if(confirm("¿Anular esta venta? El stock no se devolverá automáticamente.")) {
+                historialVentas = historialVentas.filter(v => v.id !== id);
+                localStorage.setItem('historial_ventas', JSON.stringify(historialVentas));
+                showSection('reports');
+            }
+        }
+
+        // --- REPORTES ---
         function renderReports(container) {
             const hoy = new Date().toLocaleDateString();
-            
             const deHoy = historialVentas.filter(v => v.fecha === hoy);
             const gastosHoy = gastos.filter(g => g.fecha === hoy).reduce((s, g) => s + g.monto, 0);
-            
             const brutoHoy = deHoy.reduce((s,v) => s + v.total, 0);
-            const gananciaVentasHoy = deHoy.reduce((s,v) => s + v.ganancia, 0);
-            const gananciaFinalHoy = gananciaVentasHoy - gastosHoy;
-
-            const totEfectivo = deHoy.filter(v => v.metodo === 'Efectivo').reduce((s,v) => s + v.total, 0);
-            const totTransf = deHoy.filter(v => v.metodo === 'Transferencia').reduce((s,v) => s + v.total, 0);
-            const totTarjeta = deHoy.filter(v => v.metodo === 'Tarjeta').reduce((s,v) => s + v.total, 0);
+            const gananciaRealHoy = deHoy.reduce((s,v) => s + v.ganancia, 0) - gastosHoy;
 
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black uppercase italic text-blue-600">Reportes</h2>
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Resumen del negocio</p>
-                    </div>
+                    <div><h2 class="text-2xl font-black uppercase italic text-blue-600">Reportes</h2></div>
                     <div class="flex gap-2">
-                        <button onclick="respaldarDatos()" class="bg-blue-500 text-white px-4 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-blue-600 transition shadow-lg">
-                            <i class="fas fa-download mr-1"></i> Guardar Respaldo
-                        </button>
-                        <button onclick="borrarHistorial()" class="bg-gray-200 text-gray-500 px-4 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-red-500 hover:text-white transition">
-                            <i class="fas fa-trash-alt mr-1"></i> Borrar Todo
-                        </button>
-                        <button onclick="cerrarCaja()" class="bg-red-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-red-600 transition">
-                            <i class="fas fa-lock mr-1"></i> Cierre de Hoy
-                        </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-white p-6 rounded-[32px] border border-blue-100 shadow-sm flex flex-col items-center">
-                        <p class="text-[10px] font-black text-gray-400 uppercase mb-1 italic">Ventas (Bruto)</p>
-                        <p class="text-3xl font-black text-gray-800">$${brutoHoy.toFixed(2)}</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-[32px] border border-orange-100 shadow-sm flex flex-col items-center">
-                        <p class="text-[10px] font-black text-orange-400 uppercase mb-1 italic">Gastos Hoy</p>
-                        <p class="text-3xl font-black text-orange-600">$${gastosHoy.toFixed(2)}</p>
-                        <button onclick="agregarGasto()" class="text-[8px] font-bold text-blue-500 mt-2 uppercase underline">+ Agregar Gasto</button>
-                    </div>
-                    <div class="bg-gray-900 p-6 rounded-[32px] shadow-xl flex flex-col items-center col-span-1 md:col-span-2">
-                        <p class="text-[10px] font-black text-gray-500 uppercase mb-1 italic tracking-widest text-center">Ganancia Real (Ventas - Gastos)</p>
-                        <p class="text-4xl font-black ${gananciaFinalHoy >= 0 ? 'text-green-400' : 'text-red-400'}">$${gananciaFinalHoy.toFixed(2)}</p>
+                        <button onclick="respaldarDatos()" class="bg-blue-500 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg">Respaldo</button>
+                        <button onclick="cerrarCaja()" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg">Cierre Hoy</button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div class="bg-green-50/50 p-4 rounded-3xl border border-green-100"><p class="text-[8px] font-black text-green-600 uppercase">Efectivo</p><p class="text-lg font-black text-green-700">$${totEfectivo.toFixed(2)}</p></div>
-                    <div class="bg-blue-50/50 p-4 rounded-3xl border border-blue-100"><p class="text-[8px] font-black text-blue-600 uppercase">Transferencia</p><p class="text-lg font-black text-blue-700">$${totTransf.toFixed(2)}</p></div>
-                    <div class="bg-red-50/50 p-4 rounded-3xl border border-red-100"><p class="text-[8px] font-black text-red-600 uppercase">Tarjeta</p><p class="text-lg font-black text-red-700">$${totTarjeta.toFixed(2)}</p></div>
+                    <div class="bg-white p-5 rounded-[32px] border border-blue-100 flex flex-col items-center">
+                        <p class="text-[9px] font-black text-gray-400 uppercase">Bruto Hoy</p>
+                        <p class="text-2xl font-black text-gray-800">$${brutoHoy.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-[32px] border border-orange-100 flex flex-col items-center">
+                        <p class="text-[9px] font-black text-gray-400 uppercase">Gastos Hoy</p>
+                        <p class="text-2xl font-black text-orange-600">$${gastosHoy.toFixed(2)}</p>
+                        <button onclick="agregarGasto()" class="text-[8px] font-black text-blue-500 mt-1 uppercase underline">+ Gasto</button>
+                    </div>
+                    <div class="bg-gray-900 p-5 rounded-[32px] flex flex-col items-center">
+                        <p class="text-[9px] font-black text-gray-500 uppercase">Ganancia Limpia</p>
+                        <p class="text-2xl font-black text-green-400">$${gananciaRealHoy.toFixed(2)}</p>
+                    </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-2">
-                         <p class="text-[10px] font-black text-gray-400 uppercase px-4 italic">Gastos Detallados de Hoy</p>
-                         ${gastos.filter(g => g.fecha === hoy).map(g => `
-                            <div class="bg-orange-50 p-3 rounded-2xl border border-orange-100 flex justify-between items-center mx-4">
-                                <span class="font-bold text-xs text-orange-800">${g.desc}</span>
-                                <span class="font-black text-orange-600">-$${g.monto.toFixed(2)}</span>
+                        <p class="text-[10px] font-black text-gray-400 uppercase italic mb-2 tracking-widest">Gastos Detallados</p>
+                        ${gastos.slice().reverse().map(g => `
+                            <div class="bg-white p-3 rounded-2xl border border-orange-100 flex justify-between items-center">
+                                <div class="text-xs font-bold text-gray-600">
+                                    <span class="text-[8px] block text-gray-400">${g.fecha}</span>
+                                    ${g.desc}
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="font-black text-orange-600 text-sm">-$${g.monto.toFixed(2)}</span>
+                                    <button onclick="borrarGasto(${g.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                                </div>
                             </div>
-                         `).join('')}
+                        `).join('')}
                     </div>
 
                     <div class="space-y-2">
-                        <p class="text-[10px] font-black text-gray-400 uppercase px-4 italic">Últimas Ventas</p>
+                        <p class="text-[10px] font-black text-gray-400 uppercase italic mb-2 tracking-widest">Ventas Detalladas</p>
                         ${historialVentas.slice().reverse().map(v => {
-                            let bgColor = v.metodo === 'Efectivo' ? "bg-green-500/10 border-green-200" : 
-                                         v.metodo === 'Transferencia' ? "bg-blue-500/10 border-blue-200" : "bg-red-500/10 border-red-200";
+                            let color = v.metodo === 'Efectivo' ? "border-green-200 bg-green-50/50" : 
+                                        v.metodo === 'Transferencia' ? "border-blue-200 bg-blue-50/50" : "border-red-200 bg-red-50/50";
                             return `
-                                <div class="${bgColor} p-4 rounded-2xl border flex justify-between items-center mx-4">
-                                    <div class="w-32"><p class="text-[8px] font-black text-gray-400 uppercase">${v.fecha}</p><p class="font-black text-xs uppercase">${v.metodo}</p></div>
-                                    <div class="text-center"><p class="text-[8px] font-bold text-gray-400 uppercase">Ganancia</p><p class="font-black text-green-600 text-xs">+$${v.ganancia.toFixed(2)}</p></div>
-                                    <div class="text-right w-32"><p class="text-[8px] font-bold text-gray-400 uppercase">Total</p><p class="font-black text-gray-800 text-sm">$${v.total.toFixed(2)}</p></div>
+                                <div class="bg-white p-3 rounded-2xl border ${color} flex justify-between items-center">
+                                    <div class="text-xs font-bold text-gray-600">
+                                        <span class="text-[8px] block text-gray-400">${v.fecha} - ${v.hora}</span>
+                                        ${v.metodo.toUpperCase()}
+                                    </div>
+                                    <div class="flex items-center gap-4">
+                                        <span class="font-black text-gray-800 text-sm">$${v.total.toFixed(2)}</span>
+                                        <button onclick="borrarVenta(${v.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+                                    </div>
                                 </div>
                             `;
                         }).join('')}
@@ -341,42 +338,22 @@
         }
 
         function respaldarDatos() {
-            const data = {
-                productos: productos,
-                historial: historialVentas,
-                gastos: gastos,
-                fechaRespaldo: new Date().toLocaleString()
-            };
+            const data = { productos, historialVentas, gastos, fecha: new Date().toLocaleString() };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `Respaldo_Almacen_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+            a.href = URL.createObjectURL(blob);
+            a.download = `Respaldo_Almacen_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
             a.click();
-            alert("Respaldo guardado con éxito. ¡Mantenlo seguro!");
-        }
-
-        function borrarHistorial() {
-            if(confirm("¿Estás seguro de borrar historial y gastos?")) {
-                localStorage.removeItem('historial_ventas');
-                localStorage.removeItem('gastos');
-                historialVentas = [];
-                gastos = [];
-                showSection('reports');
-            }
         }
 
         function cerrarCaja() {
             const hoy = new Date().toLocaleDateString();
             const deHoy = historialVentas.filter(v => v.fecha === hoy);
             const gastosHoy = gastos.filter(g => g.fecha === hoy).reduce((s, g) => s + g.monto, 0);
-            if(deHoy.length === 0 && gastosHoy === 0) { alert("Sin actividad hoy."); return; }
-
             const bruto = deHoy.reduce((s,v) => s + v.total, 0);
             const efectivo = deHoy.filter(v => v.metodo === 'Efectivo').reduce((s,v) => s + v.total, 0);
-            const gananciaReal = deHoy.reduce((s,v) => s + v.ganancia, 0) - gastosHoy;
-
-            alert(`--- CIERRE DE CAJA ${hoy} ---\n\nBRUTO TOTAL: $${bruto.toFixed(2)}\nGASTOS: $${gastosHoy.toFixed(2)}\n\nEFECTIVO EN CAJA: $${efectivo.toFixed(2)}\n\nGANANCIA REAL: $${gananciaReal.toFixed(2)}`);
+            const ganancia = deHoy.reduce((s,v) => s + v.ganancia, 0) - gastosHoy;
+            alert(`--- CIERRE ${hoy} ---\n\nBRUTO: $${bruto.toFixed(2)}\nGASTOS: $${gastosHoy.toFixed(2)}\n\nEFECTIVO EN CAJA: $${efectivo.toFixed(2)}\n\nGANANCIA REAL: $${ganancia.toFixed(2)}`);
         }
 
         function filtrarProductos() { filtroActual = document.getElementById('buscador').value.toLowerCase(); showSection('pos'); }
