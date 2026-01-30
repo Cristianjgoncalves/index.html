@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -202,7 +201,7 @@
         // --- INVENTARIO ---
         function renderInventory(container) {
             container.innerHTML = `
-                <h2 class="text-2xl font-black uppercase italic text-blue-600 mb-6">Inventario</h2>
+                <h2 class="text-2xl font-black uppercase italic text-blue-600 mb-6 font-bold">Inventario</h2>
                 <div class="bg-white p-6 rounded-[32px] shadow-sm border border-blue-50 mb-8">
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                         <input type="text" id="inv-nombre" placeholder="Nombre" class="p-3 border rounded-xl font-bold uppercase text-sm">
@@ -241,13 +240,14 @@
         }
         function borrarProducto(id) { if(confirm("¿Borrar?")) { productos = productos.filter(x => x.id !== id); localStorage.setItem('productos', JSON.stringify(productos)); showSection('inventory'); } }
 
-        // --- REPORTES Y CIERRE DE CAJA ---
+        // --- REPORTES Y CIERRE DE CAJA (MODIFICADO) ---
         function renderReports(container) {
             const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
             const hoy = new Date().toLocaleDateString();
             
-            // Cálculos para el cierre del día
             const deHoy = h.filter(v => v.fecha === hoy);
+            const cantVentasHoy = deHoy.length;
+            const brutoHoy = deHoy.reduce((s,v) => s + v.total, 0);
             const totEfectivo = deHoy.filter(v => v.metodo === 'Efectivo').reduce((s,v) => s + v.total, 0);
             const totTransf = deHoy.filter(v => v.metodo === 'Transferencia').reduce((s,v) => s + v.total, 0);
             const totTarjeta = deHoy.filter(v => v.metodo === 'Tarjeta').reduce((s,v) => s + v.total, 0);
@@ -255,33 +255,52 @@
 
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-black uppercase italic text-blue-600">Historial y Cierre</h2>
-                    <button onclick="cerrarCaja()" class="bg-red-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-red-600 transition">
-                        <i class="fas fa-lock mr-2"></i> Cerrar Caja de Hoy
-                    </button>
+                    <div>
+                        <h2 class="text-2xl font-black uppercase italic text-blue-600">Reportes</h2>
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Resumen de caja y ventas</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="borrarHistorial()" class="bg-gray-200 text-gray-500 px-4 py-3 rounded-2xl font-black text-[10px] uppercase hover:bg-red-100 hover:text-red-500 transition">
+                            <i class="fas fa-trash-alt mr-1"></i> Borrar Historial
+                        </button>
+                        <button onclick="cerrarCaja()" class="bg-red-500 text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:bg-red-600 transition">
+                            <i class="fas fa-lock mr-1"></i> Cierre de Hoy
+                        </button>
+                    </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-green-50 p-4 rounded-3xl border border-green-100">
-                        <p class="text-[8px] font-black text-green-600 uppercase">Efectivo Hoy</p>
-                        <p class="text-xl font-black text-green-700">$${totEfectivo.toFixed(2)}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-[32px] border border-blue-100 shadow-sm flex flex-col items-center">
+                        <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Ventas realizadas</p>
+                        <p class="text-4xl font-black text-blue-600">${cantVentasHoy}</p>
                     </div>
-                    <div class="bg-blue-50 p-4 rounded-3xl border border-blue-100">
-                        <p class="text-[8px] font-black text-blue-600 uppercase">Transferencia Hoy</p>
-                        <p class="text-xl font-black text-blue-700">$${totTransf.toFixed(2)}</p>
+                    <div class="bg-white p-6 rounded-[32px] border border-blue-100 shadow-sm flex flex-col items-center text-center">
+                        <p class="text-[10px] font-black text-gray-400 uppercase mb-1">Total en Bruto (Hoy)</p>
+                        <p class="text-4xl font-black text-gray-800">$${brutoHoy.toFixed(2)}</p>
                     </div>
-                    <div class="bg-red-50 p-4 rounded-3xl border border-red-100">
-                        <p class="text-[8px] font-black text-red-600 uppercase">Tarjeta Hoy</p>
-                        <p class="text-xl font-black text-red-700">$${totTarjeta.toFixed(2)}</p>
+                    <div class="bg-gray-900 p-6 rounded-[32px] shadow-xl flex flex-col items-center">
+                        <p class="text-[10px] font-black text-gray-500 uppercase mb-1">Ganancia Limpia</p>
+                        <p class="text-4xl font-black text-green-400">$${gananciaHoy.toFixed(2)}</p>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-3xl shadow-lg">
-                        <p class="text-[8px] font-black text-gray-400 uppercase text-center">Ganancia Limpia</p>
-                        <p class="text-xl font-black text-white text-center">$${gananciaHoy.toFixed(2)}</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-green-50/50 p-4 rounded-3xl border border-green-100">
+                        <p class="text-[8px] font-black text-green-600 uppercase">Efectivo</p>
+                        <p class="text-lg font-black text-green-700">$${totEfectivo.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-blue-50/50 p-4 rounded-3xl border border-blue-100">
+                        <p class="text-[8px] font-black text-blue-600 uppercase">Transferencia</p>
+                        <p class="text-lg font-black text-blue-700">$${totTransf.toFixed(2)}</p>
+                    </div>
+                    <div class="bg-red-50/50 p-4 rounded-3xl border border-red-100">
+                        <p class="text-[8px] font-black text-red-600 uppercase">Tarjeta</p>
+                        <p class="text-lg font-black text-red-700">$${totTarjeta.toFixed(2)}</p>
                     </div>
                 </div>
 
                 <div class="space-y-2">
-                    <p class="text-[10px] font-black text-gray-400 uppercase px-4">Últimas operaciones</p>
+                    <p class="text-[10px] font-black text-gray-400 uppercase px-4 italic">Operaciones detalladas</p>
                     ${h.slice().reverse().map(v => {
                         let bgColor = "bg-gray-100";
                         if(v.metodo === 'Efectivo') bgColor = "bg-green-500/10 border-green-200";
@@ -290,22 +309,29 @@
                         
                         return `
                             <div class="${bgColor} p-4 rounded-2xl border flex justify-between items-center transition hover:scale-[1.01]">
-                                <div>
-                                    <p class="text-[8px] font-black text-gray-400 uppercase">${v.fecha} - ${v.hora}</p>
+                                <div class="w-32">
+                                    <p class="text-[8px] font-black text-gray-400 uppercase">${v.fecha}</p>
                                     <p class="font-black text-xs uppercase">${v.metodo}</p>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-[8px] font-bold text-gray-400 uppercase block tracking-tighter">Ganancia</p>
-                                    <p class="font-black text-green-600 text-xs">$${v.ganancia.toFixed(2)}</p>
+                                    <p class="text-[8px] font-bold text-gray-400 uppercase">Ganancia</p>
+                                    <p class="font-black text-green-600 text-xs">+$${v.ganancia.toFixed(2)}</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-[8px] font-bold text-gray-400 uppercase block tracking-tighter">Total</p>
-                                    <p class="font-black text-gray-800">$${v.total.toFixed(2)}</p>
+                                    <p class="text-[8px] font-bold text-gray-400 uppercase">Total Cobrado</p>
+                                    <p class="font-black text-gray-800 text-sm">$${v.total.toFixed(2)}</p>
                                 </div>
                             </div>
                         `;
                     }).join('')}
                 </div>`;
+        }
+
+        function borrarHistorial() {
+            if(confirm("¿Estás seguro de que quieres borrar TODO el historial de ventas? Esto no se puede deshacer.")) {
+                localStorage.removeItem('historial_ventas');
+                showSection('reports');
+            }
         }
 
         function cerrarCaja() {
@@ -320,9 +346,7 @@
             const transf = deHoy.filter(v => v.metodo === 'Transferencia').reduce((s,v) => s + v.total, 0);
             const tarjeta = deHoy.filter(v => v.metodo === 'Tarjeta').reduce((s,v) => s + v.total, 0);
 
-            alert(`--- CIERRE DE CAJA ${hoy} ---\n\nEFECTIVO: $${efectivo.toFixed(2)}\nTRANSFERENCIA: $${transf.toFixed(2)}\nTARJETA: $${tarjeta.toFixed(2)}\n\nTOTAL GENERAL: $${total.toFixed(2)}\n\n¡Cierre guardado!`);
-            
-            // Opcional: Podrías vaciar el historial o marcarlo como "cerrado" aquí.
+            alert(`--- CIERRE DE CAJA ${hoy} ---\n\nVENTAS TOTALES: ${deHoy.length}\n\nEFECTIVO: $${efectivo.toFixed(2)}\nTRANSFERENCIA: $${transf.toFixed(2)}\nTARJETA: $${tarjeta.toFixed(2)}\n\nTOTAL BRUTO: $${total.toFixed(2)}\n\n¡Controlado con éxito!`);
         }
 
         function filtrarProductos() { filtroActual = document.getElementById('buscador').value.toLowerCase(); showSection('pos'); }
