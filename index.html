@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén del Repostero v20</title>
+    <title>El Almacén del Repostero v21</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -104,11 +104,8 @@
 
         function actualizarCantidadCarrito(index, valor) {
             const cant = parseFloat(valor) || 0;
-            if (cant <= 0) {
-                carrito.splice(index, 1);
-            } else {
-                carrito[index].cantidad = cant;
-            }
+            if (cant <= 0) { carrito.splice(index, 1); } 
+            else { carrito[index].cantidad = cant; }
             renderCart();
         }
 
@@ -142,9 +139,8 @@
             const ahora = new Date();
 
             let h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
-            
             h.push({
-                id: Date.now(),
+                idVenta: Date.now(),
                 fecha: ahora.toLocaleDateString('es-AR'),
                 hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 total: totalVenta,
@@ -173,12 +169,11 @@
             showSection('pos');
         }
 
-        // --- INVENTARIO (CON EDICIÓN DIRECTA) ---
+        // --- INVENTARIO ---
         function renderInventory(container) {
             container.innerHTML = `
                 <h2 class="text-2xl font-black uppercase text-blue-600 mb-6 italic">Inventario y Precios</h2>
                 <div class="bg-white p-6 rounded-[32px] shadow-sm mb-8 border border-blue-50">
-                    <p class="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest italic">Agregar Producto</p>
                     <div class="grid grid-cols-5 gap-3">
                         <input type="text" id="inv-nombre" placeholder="Nombre" class="p-3 border rounded-xl font-bold text-sm">
                         <input type="number" id="inv-costo" placeholder="Costo" class="p-3 border rounded-xl font-bold text-sm">
@@ -228,10 +223,9 @@
             }
         }
 
-        // --- REPORTES ---
+        // --- REPORTES (NUEVA FUNCIÓN BORRAR INDIVIDUAL) ---
         function renderReports(container) {
-            let h = [];
-            try { h = JSON.parse(localStorage.getItem('historial_ventas')) || []; } catch(e) { h = []; }
+            let h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
             const hoy = new Date().toLocaleDateString('es-AR');
             const gananciaHoy = h.filter(v => v.fecha === hoy).reduce((acc, v) => acc + (v.ganancia || 0), 0);
 
@@ -239,21 +233,35 @@
                 <div class="flex justify-between items-end mb-6">
                     <div>
                         <h2 class="text-2xl font-black uppercase text-blue-600 italic">Reporte Detallado</h2>
-                        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black inline-block mt-2">HOY: $${gananciaHoy.toFixed(2)}</div>
+                        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black inline-block mt-2 uppercase italic tracking-widest">GANANCIA HOY: $${gananciaHoy.toFixed(2)}</div>
                     </div>
-                    <button onclick="if(confirm('¿Vaciar historial?')){localStorage.setItem('historial_ventas','[]');showSection('reports');}" class="text-[9px] bg-red-50 text-red-500 font-black p-2 rounded-xl border border-red-100 uppercase">Limpiar</button>
+                    <button onclick="if(confirm('¿Borrar TODO el historial?')){localStorage.setItem('historial_ventas','[]');showSection('reports');}" class="text-[9px] bg-red-50 text-red-500 font-black p-2 rounded-xl border border-red-100 uppercase">Vaciar Todo</button>
                 </div>
                 <div class="space-y-2">
                     ${h.length === 0 ? '<p class="text-center py-10 text-gray-400 font-bold uppercase text-xs italic">No hay registros</p>' : ''}
                     ${h.slice().reverse().map(v => `
-                        <div class="bg-white p-4 rounded-2xl border shadow-sm grid grid-cols-5 items-center hover:bg-blue-50 transition">
+                        <div class="bg-white p-4 rounded-2xl border shadow-sm grid grid-cols-6 items-center hover:bg-blue-50 transition group">
                             <div class="text-[10px] font-bold text-gray-500">${v.fecha}<br><span class="text-blue-500 font-black">${v.hora}</span></div>
                             <div class="col-span-2 text-[9px] font-bold text-gray-400 uppercase truncate pr-2 italic">${(v.detalle || []).join(', ')}</div>
-                            <div class="text-center font-black text-gray-700">$${(v.total || 0).toFixed(2)}</div>
-                            <div class="text-right font-black text-green-600 text-sm">$${(v.ganancia || 0).toFixed(2)}</div>
+                            <div class="text-center font-black text-gray-700 text-sm">$${(v.total || 0).toFixed(2)}</div>
+                            <div class="text-center font-black text-green-600 text-sm">$${(v.ganancia || 0).toFixed(2)}</div>
+                            <div class="text-right">
+                                <button onclick="eliminarVenta(${v.idVenta})" class="text-red-200 hover:text-red-500 p-2 transition">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>`;
+        }
+
+        function eliminarVenta(id) {
+            if(confirm("¿Eliminar esta venta del historial? (No devuelve el stock)")) {
+                let h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+                h = h.filter(v => v.idVenta !== id);
+                localStorage.setItem('historial_ventas', JSON.stringify(h));
+                showSection('reports');
+            }
         }
 
         function filtrarProductos() { filtroActual = document.getElementById('buscador').value.toLowerCase(); showSection('pos'); }
