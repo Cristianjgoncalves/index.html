@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén del Repostero v18</title>
+    <title>El Almacén del Repostero v19 - Reparado</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-        input:focus { background-color: #eff6ff; border-color: #3b82f6; }
+        input:focus { background-color: #eff6ff; outline: 2px solid #3b82f6; }
     </style>
 </head>
 <body class="bg-gray-100 h-screen flex overflow-hidden font-sans text-gray-800">
@@ -28,8 +27,8 @@
             <button onclick="showSection('inventory')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600">
                 <i class="fas fa-boxes mr-3 text-blue-500"></i> Inventario
             </button>
-            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600">
-                <i class="fas fa-file-invoice-dollar mr-3 text-blue-500"></i> Historial / Reportes
+            <button onclick="showSection('reports')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600 text-left">
+                <i class="fas fa-file-invoice-dollar mr-3 text-blue-500"></i> Reportes y Historial
             </button>
         </nav>
     </div>
@@ -46,6 +45,7 @@
     </div>
 
     <script>
+        // Carga segura de datos
         let productos = JSON.parse(localStorage.getItem('productos')) || [];
         let carrito = [];
         let filtroActual = "";
@@ -72,24 +72,21 @@
                         `).join('')}
                     </div>
                     <div class="w-96 bg-white rounded-[32px] shadow-xl p-6 flex flex-col border border-blue-50">
-                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 italic text-center">Ticket Actual</h2>
+                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 italic text-center">Ticket</h2>
                         <div id="cart-list" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
                         <div class="pt-4 border-t border-dashed bg-gray-50 p-4 rounded-2xl space-y-3">
                             <div class="flex justify-between items-center text-2xl font-black text-blue-900">
                                 <span>TOTAL</span>
                                 <span id="total-txt">$0.00</span>
                             </div>
-                            <div class="flex items-center justify-between gap-2 pt-2 border-t">
-                                <span class="text-[10px] font-black text-gray-400 uppercase text-xs">Paga con:</span>
-                                <input type="number" id="pago-input" oninput="calcularVuelto()" placeholder="$" class="w-28 p-1.5 border-2 border-blue-100 rounded-xl font-black text-right text-blue-600 text-sm">
-                            </div>
+                            <input type="number" id="pago-input" oninput="calcularVuelto()" placeholder="Paga con..." class="w-full p-2 border-2 border-blue-100 rounded-xl font-black text-center text-blue-600 text-sm outline-none">
                             <div class="flex justify-between items-center text-lg font-black text-green-600">
                                 <span class="text-[10px] uppercase">Vuelto:</span>
                                 <span id="vuelto-txt">$0.00</span>
                             </div>
                             <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button onclick="procesarVenta(true)" class="bg-blue-600 text-white py-4 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-blue-700 transition">Imprimir</button>
-                                <button onclick="procesarVenta(false)" class="bg-gray-400 text-white py-4 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-gray-500 transition">Cobrar</button>
+                                <button onclick="procesarVenta(true)" class="bg-blue-600 text-white py-4 rounded-xl font-black text-[9px] uppercase shadow-lg hover:bg-blue-700">Imprimir</button>
+                                <button onclick="procesarVenta(false)" class="bg-gray-400 text-white py-4 rounded-xl font-black text-[9px] uppercase shadow-lg hover:bg-gray-500">Cobrar</button>
                             </div>
                         </div>
                     </div>
@@ -100,12 +97,8 @@
         function agregarAlCarrito(id) {
             const p = productos.find(x => x.id === id);
             if(p.stock <= 0) { alert("¡Sin Stock!"); return; }
-            const itemExistente = carrito.find(x => x.id === id);
-            if (itemExistente) {
-                itemExistente.cantidad = parseFloat((itemExistente.cantidad + 1).toFixed(2));
-            } else {
-                carrito.push({ ...p, cantidad: 1 });
-            }
+            const item = carrito.find(x => x.id === id);
+            if (item) { item.cantidad++; } else { carrito.push({ ...p, cantidad: 1 }); }
             renderCart();
         }
 
@@ -113,9 +106,9 @@
             const list = document.getElementById('cart-list');
             if (!list) return;
             list.innerHTML = carrito.map((i, index) => `
-                <div class="bg-white p-2 rounded-xl border border-gray-100 flex justify-between items-center">
-                    <div class="w-1/2 font-black text-[10px] uppercase text-gray-600 truncate">${i.nombre}</div>
-                    <span class="font-black text-xs text-gray-800">$${(i.precio * i.cantidad).toFixed(2)}</span>
+                <div class="bg-white p-2 rounded-xl border flex justify-between items-center">
+                    <div class="w-1/2 font-black text-[10px] uppercase truncate">${i.nombre}</div>
+                    <span class="font-black text-xs">$${(i.precio * i.cantidad).toFixed(2)}</span>
                     <button onclick="carrito.splice(${index},1); renderCart()" class="text-red-300"><i class="fas fa-times-circle"></i></button>
                 </div>
             `).join('');
@@ -126,8 +119,7 @@
 
         function calcularVuelto() {
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
-            const pagoVal = document.getElementById('pago-input').value;
-            const pago = parseFloat(pagoVal) || total;
+            const pago = parseFloat(document.getElementById('pago-input').value) || total;
             document.getElementById('vuelto-txt').innerText = `$${Math.max(0, pago - total).toFixed(2)}`;
         }
 
@@ -135,17 +127,19 @@
             if (carrito.length === 0) return;
             const totalVenta = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
-            const fechaActual = new Date();
+            const ahora = new Date();
 
-            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            let h = [];
+            try { h = JSON.parse(localStorage.getItem('historial_ventas')) || []; } catch(e) { h = []; }
+            
             h.push({
-                idVenta: Date.now(),
-                fecha: fechaActual.toLocaleDateString('es-AR'),
-                hora: fechaActual.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                id: Date.now(),
+                fecha: ahora.toLocaleDateString('es-AR'),
+                hora: ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
                 total: totalVenta,
                 costo: costoVenta,
                 ganancia: totalVenta - costoVenta,
-                productos: carrito.map(c => `${c.cantidad}x ${c.nombre}`)
+                detalle: carrito.map(c => `${c.cantidad}x ${c.nombre}`)
             });
 
             carrito.forEach(item => {
@@ -158,66 +152,49 @@
 
             if(debeImprimir) {
                 const win = window.open('', '_blank');
-                win.document.write(`<html><body style="font-family:monospace;width:200px;text-align:center;font-size:12px;">
+                win.document.write(`<html><body style="font-family:monospace;width:180px;text-align:center;font-size:11px;">
                     <b>ALMACÉN DEL REPOSTERO</b><hr>
                     ${carrito.map(i => `${i.nombre} <br> $${(i.precio*i.cantidad).toFixed(2)}`).join('<br>')}<hr>
                     <b>TOTAL: $${totalVenta.toFixed(2)}</b><br><script>window.print();window.close();<\/script></body></html>`);
             }
-
             carrito = [];
             alert("Venta Exitosa");
             showSection('pos');
         }
 
-        // --- INVENTARIO (RESTAURADO) ---
+        // --- INVENTARIO (EDITABLE) ---
         function renderInventory(container) {
             container.innerHTML = `
-                <h2 class="text-2xl font-black uppercase text-blue-600 mb-6">Inventario y Precios</h2>
+                <h2 class="text-2xl font-black uppercase text-blue-600 mb-6">Inventario</h2>
                 <div class="bg-white p-6 rounded-[32px] shadow-sm mb-8">
-                    <p class="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest italic">Nuevo Producto</p>
                     <div class="grid grid-cols-5 gap-3">
-                        <input type="text" id="inv-nombre" placeholder="Nombre" class="p-3 border rounded-xl outline-none text-sm font-bold">
-                        <input type="number" id="inv-costo" placeholder="Costo $" class="p-3 border rounded-xl outline-none text-sm font-bold">
-                        <input type="number" id="inv-precio" placeholder="Venta $" class="p-3 border rounded-xl outline-none text-sm font-bold">
-                        <input type="number" id="inv-stock" placeholder="Stock" class="p-3 border rounded-xl outline-none text-sm font-bold">
-                        <button onclick="guardarProducto()" class="bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase">Agregar</button>
+                        <input type="text" id="inv-nombre" placeholder="Producto" class="p-3 border rounded-xl font-bold text-sm">
+                        <input type="number" id="inv-costo" placeholder="Costo" class="p-3 border rounded-xl font-bold text-sm">
+                        <input type="number" id="inv-precio" placeholder="Venta" class="p-3 border rounded-xl font-bold text-sm">
+                        <input type="number" id="inv-stock" placeholder="Stock" class="p-3 border rounded-xl font-bold text-sm">
+                        <button onclick="guardarProducto()" class="bg-blue-600 text-white rounded-xl font-black uppercase text-[10px]">Agregar</button>
                     </div>
                 </div>
-
-                <div class="space-y-2 pb-10">
-                    <div class="grid grid-cols-6 px-6 text-[10px] font-black text-gray-400 uppercase mb-2 text-center">
+                <div class="space-y-2">
+                    <div class="grid grid-cols-6 px-4 text-[10px] font-black text-gray-400 uppercase text-center">
                         <div class="col-span-2 text-left">Producto</div>
-                        <div>Costo ($)</div>
-                        <div>Venta ($)</div>
-                        <div>Stock</div>
-                        <div>Acción</div>
+                        <div>Costo ($)</div><div>Venta ($)</div><div>Stock</div><div>Acción</div>
                     </div>
                     ${productos.map((p, index) => `
-                        <div class="bg-white p-3 rounded-2xl shadow-sm border grid grid-cols-6 gap-3 items-center">
-                            <div class="col-span-2 font-black text-xs uppercase text-gray-700">${p.nombre}</div>
-                            <input type="number" value="${p.costo}" oninput="editLocal(${index}, 'costo', this.value)" 
-                                class="w-full p-2 border border-gray-100 rounded-lg text-xs font-black text-orange-600 text-center">
-                            <input type="number" value="${p.precio}" oninput="editLocal(${index}, 'precio', this.value)" 
-                                class="w-full p-2 border border-gray-100 rounded-lg text-xs font-black text-blue-600 text-center">
-                            <input type="number" value="${p.stock}" oninput="editLocal(${index}, 'stock', this.value)" 
-                                class="w-full p-2 border border-gray-100 rounded-lg text-xs font-black text-gray-500 text-center">
-                            <div class="flex justify-center gap-2">
-                                <button onclick="saveAll()" class="text-green-500 hover:scale-110"><i class="fas fa-check-circle"></i></button>
-                                <button onclick="borrarProducto(${p.id})" class="text-red-300 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                            </div>
+                        <div class="bg-white p-3 rounded-2xl border grid grid-cols-6 gap-3 items-center shadow-sm">
+                            <div class="col-span-2 font-black text-xs uppercase">${p.nombre}</div>
+                            <input type="number" value="${p.costo}" onchange="updateProd(${index}, 'costo', this.value)" class="w-full p-1 border rounded text-center font-bold text-xs text-orange-500">
+                            <input type="number" value="${p.precio}" onchange="updateProd(${index}, 'precio', this.value)" class="w-full p-1 border rounded text-center font-bold text-xs text-blue-600">
+                            <input type="number" value="${p.stock}" onchange="updateProd(${index}, 'stock', this.value)" class="w-full p-1 border rounded text-center font-bold text-xs">
+                            <button onclick="borrarProducto(${p.id})" class="text-red-300 hover:text-red-500 text-center"><i class="fas fa-trash"></i></button>
                         </div>
                     `).join('')}
                 </div>`;
         }
 
-        function editLocal(index, campo, valor) {
-            productos[index][campo] = parseFloat(valor) || 0;
+        function updateProd(idx, campo, val) {
+            productos[idx][campo] = parseFloat(val) || 0;
             localStorage.setItem('productos', JSON.stringify(productos));
-        }
-
-        function saveAll() {
-            localStorage.setItem('productos', JSON.stringify(productos));
-            alert("Guardado");
         }
 
         function guardarProducto() {
@@ -239,35 +216,35 @@
             }
         }
 
-        // --- REPORTES Y HISTORIAL DETALLADO ---
+        // --- REPORTES (REPARADO CON ESCUDO DE ERROR) ---
         function renderReports(container) {
-            const h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            let h = [];
+            try {
+                h = JSON.parse(localStorage.getItem('historial_ventas')) || [];
+            } catch(e) {
+                console.error("Error cargando historial, reseteando...");
+                h = [];
+            }
+
             const hoy = new Date().toLocaleDateString('es-AR');
-            
-            const gananciaHoy = h.filter(v => v.fecha === hoy).reduce((acc, v) => acc + v.ganancia, 0);
+            const gananciaHoy = h.filter(v => v.fecha === hoy).reduce((acc, v) => acc + (v.ganancia || 0), 0);
 
             container.innerHTML = `
                 <div class="flex justify-between items-end mb-6">
                     <div>
-                        <h2 class="text-2xl font-black uppercase text-blue-600 italic">Historial de Ventas</h2>
-                        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black inline-block mt-2">GANANCIA HOY: $${gananciaHoy.toFixed(2)}</div>
+                        <h2 class="text-2xl font-black uppercase text-blue-600 italic">Historial Detallado</h2>
+                        <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-black inline-block mt-2">HOY: $${gananciaHoy.toFixed(2)}</div>
                     </div>
-                    <button onclick="if(confirm('¿Borrar todo el historial?')){localStorage.removeItem('historial_ventas');showSection('reports');}" class="bg-red-50 text-red-500 text-[10px] font-black p-2 rounded-xl border border-red-100 uppercase">Vaciar Historial</button>
+                    <button onclick="if(confirm('¿Borrar historial?')){localStorage.setItem('historial_ventas','[]');showSection('reports');}" class="text-[9px] bg-red-50 text-red-500 font-black p-2 rounded-xl border border-red-100 uppercase">Limpiar historial</button>
                 </div>
-                
                 <div class="space-y-2">
-                    <div class="grid grid-cols-5 px-6 text-[9px] font-black text-gray-400 uppercase">
-                        <div>Fecha/Hora</div>
-                        <div class="col-span-2">Detalle Productos</div>
-                        <div class="text-center">Venta</div>
-                        <div class="text-right">Ganancia</div>
-                    </div>
+                    ${h.length === 0 ? '<p class="text-center py-10 text-gray-400 font-bold uppercase text-xs">No hay ventas registradas</p>' : ''}
                     ${h.slice().reverse().map(v => `
-                        <div class="bg-white p-4 rounded-2xl border shadow-sm grid grid-cols-5 items-center hover:bg-gray-50 transition">
-                            <div class="text-[10px] font-bold text-gray-600">${v.fecha}<br><span class="text-blue-500 font-black">${v.hora}</span></div>
-                            <div class="col-span-2 text-[9px] font-bold text-gray-400 italic uppercase truncate">${v.productos.join(', ')}</div>
-                            <div class="text-center font-black text-gray-700 text-sm">$${v.total.toFixed(2)}</div>
-                            <div class="text-right font-black text-green-600 text-sm">$${v.ganancia.toFixed(2)}</div>
+                        <div class="bg-white p-4 rounded-2xl border shadow-sm grid grid-cols-5 items-center">
+                            <div class="text-[10px] font-bold text-gray-500">${v.fecha || 'S/F'}<br><span class="text-blue-500">${v.hora || '--:--'}</span></div>
+                            <div class="col-span-2 text-[9px] font-bold text-gray-400 uppercase truncate px-2">${(v.detalle || []).join(', ')}</div>
+                            <div class="text-center font-black text-gray-700">$${(v.total || 0).toFixed(2)}</div>
+                            <div class="text-right font-black text-green-600">$${(v.ganancia || 0).toFixed(2)}</div>
                         </div>
                     `).join('')}
                 </div>`;
@@ -279,3 +256,4 @@
     </script>
 </body>
 </html>
+
