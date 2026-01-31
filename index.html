@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Almacén v21 - Detalle de Ventas</title>
+    <title>El Almacén del Repostero v20</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,6 +11,7 @@
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
+        input:focus { background-color: #eff6ff; }
         .metodo-btn.active { border-color: #3b82f6; background-color: #eff6ff; transform: scale(1.05); }
     </style>
 </head>
@@ -19,7 +20,7 @@
     <div class="w-64 bg-white shadow-xl flex flex-col z-20">
         <div class="p-6 text-center">
             <h1 class="text-xl font-black text-blue-600 leading-tight uppercase">El Almacén <br>del Repostero</h1>
-            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic">Sarmiento 2201</p>
+            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase italic tracking-widest">Sarmiento 2201</p>
         </div>
         <nav class="flex-1 px-4 space-y-1">
             <button onclick="showSection('pos')" class="w-full flex items-center p-3 hover:bg-blue-50 rounded-xl transition font-bold text-gray-600"><i class="fas fa-cash-register mr-3 text-blue-500"></i> Ventas</button>
@@ -71,20 +72,30 @@
                                 <h3 class="font-black text-[10px] uppercase text-gray-500">${p.nombre}</h3>
                                 <p class="text-blue-600 font-black text-xl">$${p.precio.toFixed(2)}</p>
                                 <p class="text-[9px] font-bold text-gray-300 uppercase italic">Stock: ${p.stock}</p>
-                            </div>`).join('')}
+                            </div>
+                        `).join('')}
                     </div>
                     <div class="w-96 bg-white rounded-[32px] shadow-xl p-6 flex flex-col border border-blue-50">
+                        <h2 class="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 italic text-center">Ticket Actual</h2>
                         <div id="cart-list" class="flex-1 overflow-y-auto space-y-2 mb-4"></div>
                         <div class="pt-4 border-t border-dashed bg-gray-50 p-4 rounded-2xl space-y-3">
                             <div class="flex justify-between items-center text-2xl font-black text-blue-900"><span>TOTAL</span><span id="total-txt">$0.00</span></div>
-                            <div class="grid grid-cols-3 gap-2 py-2">
-                                <button onclick="setMetodo('Efectivo')" class="metodo-btn active ring-2 ring-blue-500 p-2 border rounded-xl bg-white text-[8px] font-black uppercase flex flex-col items-center"><i class="fas fa-money-bill-wave text-green-500 mb-1"></i>Efectivo</button>
-                                <button onclick="setMetodo('Transferencia')" class="metodo-btn p-2 border rounded-xl bg-white text-[8px] font-black uppercase flex flex-col items-center"><i class="fas fa-university text-blue-500 mb-1"></i>Transf.</button>
-                                <button onclick="setMetodo('Tarjeta')" class="metodo-btn p-2 border rounded-xl bg-white text-[8px] font-black uppercase flex flex-col items-center"><i class="fas fa-credit-card text-red-500 mb-1"></i>Tarjeta</button>
+                            <div class="space-y-2">
+                                <p class="text-[9px] font-black text-gray-400 uppercase text-center">Forma de Pago</p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button onclick="setMetodo('Efectivo')" class="metodo-btn active ring-2 ring-blue-500 p-2 border rounded-xl transition bg-white text-[8px] font-black uppercase flex flex-col items-center"><i class="fas fa-money-bill-wave text-green-500 mb-1"></i>Efectivo</button>
+                                    <button onclick="setMetodo('Transferencia')" class="metodo-btn p-2 border rounded-xl transition bg-white text-[8px] font-black uppercase flex flex-col items-center"><i class="fas fa-university text-blue-500 mb-1"></i>Transf.</button>
+                                    <button onclick="setMetodo('Tarjeta')" class="metodo-btn p-2 border rounded-xl transition bg-white text-[8px] font-black uppercase flex flex-col items-center"><i class="fas fa-credit-card text-red-500 mb-1"></i>Tarjeta</button>
+                                </div>
                             </div>
+                            <div class="flex items-center justify-between gap-2 pt-2 border-t border-gray-200">
+                                <span class="text-[10px] font-black text-gray-400 uppercase">Paga con:</span>
+                                <input type="number" id="pago-input" oninput="calcularVuelto()" placeholder="$" class="w-24 p-1 rounded-lg border font-black text-right text-sm">
+                            </div>
+                            <div class="flex justify-between items-center text-md font-black text-green-600"><span class="text-[9px] uppercase">Vuelto:</span><span id="vuelto-txt">$0.00</span></div>
                             <div class="grid grid-cols-2 gap-2 mt-2">
-                                <button onclick="procesarVenta(true)" class="bg-blue-600 text-white py-3 rounded-xl font-black text-[9px] uppercase shadow-lg">Ticket</button>
-                                <button onclick="procesarVenta(false)" class="bg-gray-800 text-white py-3 rounded-xl font-black text-[9px] uppercase shadow-lg">Cobrar</button>
+                                <button onclick="procesarVenta(true)" class="bg-blue-600 text-white py-3 rounded-xl font-black text-[9px] uppercase shadow-lg hover:bg-blue-700">Ticket</button>
+                                <button onclick="procesarVenta(false)" class="bg-gray-800 text-white py-3 rounded-xl font-black text-[9px] uppercase shadow-lg hover:bg-black">Cobrar</button>
                             </div>
                         </div>
                     </div>
@@ -107,70 +118,74 @@
             list.innerHTML = carrito.map((i, index) => `
                 <div class="bg-white p-2 rounded-xl border border-gray-100 flex justify-between items-center">
                     <div class="w-1/2 font-black text-[10px] uppercase text-gray-600 truncate">${i.nombre}</div>
+                    <input type="number" value="${i.cantidad}" onchange="actualizarCantidad(${index}, this.value)" class="w-10 text-center text-xs font-black bg-gray-50 rounded">
                     <span class="font-black text-xs text-gray-800">$${(i.precio * i.cantidad).toFixed(2)}</span>
                     <button onclick="carrito.splice(${index},1); renderCart()" class="text-red-200 hover:text-red-500"><i class="fas fa-times-circle"></i></button>
                 </div>`).join('');
             const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             document.getElementById('total-txt').innerText = `$${total.toFixed(2)}`;
+            calcularVuelto();
+        }
+
+        function calcularVuelto() {
+            const total = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            const pagoVal = document.getElementById('pago-input').value;
+            const pago = parseFloat(pagoVal) || total; 
+            document.getElementById('vuelto-txt').innerText = `$${Math.max(0, pago - total).toFixed(2)}`;
+        }
+
+        function actualizarCantidad(index, valor) {
+            carrito[index].cantidad = parseFloat(Math.max(0.1, parseFloat(valor) || 0.1).toFixed(2));
+            renderCart();
         }
 
         function procesarVenta(debeImprimir) {
             if (carrito.length === 0) return;
             const totalVenta = carrito.reduce((s, i) => s + (i.precio * i.cantidad), 0);
             const costoVenta = carrito.reduce((s, i) => s + (i.costo * i.cantidad), 0);
-            
-            // Copia profunda de los productos vendidos para el historial
-            const productosVendidos = carrito.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio }));
 
             carrito.forEach(item => {
                 const p = productos.find(x => x.id === item.id);
                 if (p) p.stock = parseFloat((p.stock - item.cantidad).toFixed(2));
             });
 
-            historialVentas.push({ 
-                id: Date.now(), 
-                fecha: new Date().toLocaleDateString(), 
-                hora: new Date().toLocaleTimeString(), 
-                total: totalVenta, 
-                costo: costoVenta, 
-                ganancia: totalVenta - costoVenta, 
-                metodo: metodoPagoActual,
-                items: productosVendidos 
-            });
-            
+            historialVentas.push({ id: Date.now(), fecha: new Date().toLocaleDateString(), hora: new Date().toLocaleTimeString(), total: totalVenta, costo: costoVenta, ganancia: totalVenta - costoVenta, metodo: metodoPagoActual });
             localStorage.setItem('historial_ventas', JSON.stringify(historialVentas));
             localStorage.setItem('productos', JSON.stringify(productos));
             
             if(debeImprimir) {
                 const win = window.open('', '_blank');
                 win.document.write(`<html><body style="font-family:monospace;width:240px;font-size:11px;text-align:center;">
-                    <b>EL ALMACÉN</b><br>${metodoPagoActual}<hr>
-                    ${carrito.map(i => `${i.nombre} x${i.cantidad} $${(i.precio*i.cantidad).toFixed(2)}`).join('<br>')}<hr>
-                    <b>TOTAL: $${totalVenta.toFixed(2)}</b><script>window.print();window.close();<\/script></body></html>`);
+                    <b>EL ALMACÉN DEL REPOSTERO</b><br>Sarmiento 2201<hr>
+                    MÉTODO: ${metodoPagoActual.toUpperCase()}<hr>
+                    ${carrito.map(i => `${i.nombre} x${i.cantidad} = $${(i.precio*i.cantidad).toFixed(2)}`).join('<br>')}<hr>
+                    <b>TOTAL: $${totalVenta.toFixed(2)}</b><br><br>¡Gracias por elegirnos!
+                    <script>window.print();window.close();<\/script></body></html>`);
             }
-            carrito = []; showSection('pos');
+            carrito = []; metodoPagoActual = "Efectivo"; showSection('pos');
         }
 
         // --- INVENTARIO ---
         function renderInventory(container) {
             container.innerHTML = `
-                <div class="bg-white p-6 rounded-[32px] shadow-sm border mb-8">
+                <h2 class="text-2xl font-black uppercase italic text-blue-600 mb-6 font-bold">Inventario</h2>
+                <div class="bg-white p-6 rounded-[32px] shadow-sm border border-blue-50 mb-8">
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
                         <input type="text" id="inv-nombre" placeholder="Nombre" class="p-3 border rounded-xl font-bold uppercase text-sm">
                         <input type="number" id="inv-costo" placeholder="Costo $" class="p-3 border rounded-xl font-bold text-sm">
                         <input type="number" id="inv-precio" placeholder="Venta $" class="p-3 border rounded-xl font-bold text-sm">
                         <input type="number" id="inv-stock" placeholder="Stock" class="p-3 border rounded-xl font-bold text-sm">
-                        <button onclick="guardarProducto()" class="bg-blue-600 text-white rounded-xl font-black text-xs uppercase">Agregar</button>
+                        <button onclick="guardarProducto()" class="bg-blue-600 text-white rounded-xl font-black text-xs uppercase tracking-widest">Agregar</button>
                     </div>
                 </div>
                 <div class="space-y-2 pb-10">
                     ${productos.map((p, index) => `
-                        <div class="bg-white p-3 rounded-2xl border flex justify-between items-center">
-                            <div class="w-1/3 font-black text-xs uppercase">${p.nombre}</div>
-                            <input type="number" value="${p.costo}" oninput="editLocal(${index}, 'costo', this.value)" class="w-20 p-1 border rounded text-xs text-orange-600 font-bold">
-                            <input type="number" value="${p.precio}" oninput="editLocal(${index}, 'precio', this.value)" class="w-20 p-1 border rounded text-xs text-blue-600 font-bold">
-                            <input type="number" value="${p.stock}" oninput="editLocal(${index}, 'stock', this.value)" class="w-20 p-1 border rounded text-xs font-bold">
-                            <button onclick="borrarProducto(${p.id})" class="text-red-300"><i class="fas fa-trash"></i></button>
+                        <div class="bg-white p-3 rounded-2xl shadow-sm border grid grid-cols-6 gap-3 items-center">
+                            <div class="col-span-2 font-black text-xs uppercase text-gray-700">${p.nombre}</div>
+                            <input type="number" value="${p.costo}" oninput="editLocal(${index}, 'costo', this.value)" class="p-1 border rounded text-xs font-black text-orange-600">
+                            <input type="number" value="${p.precio}" oninput="editLocal(${index}, 'precio', this.value)" class="p-1 border rounded text-xs font-black text-blue-600">
+                            <input type="number" value="${p.stock}" oninput="editLocal(${index}, 'stock', this.value)" class="p-1 border rounded text-xs font-black text-gray-500">
+                            <button onclick="borrarProducto(${p.id})" class="text-red-200 hover:text-red-500 text-right"><i class="fas fa-trash"></i></button>
                         </div>`).join('')}
                 </div>`;
         }
@@ -186,93 +201,135 @@
         }
         function borrarProducto(id) { if(confirm("¿Borrar?")) { productos = productos.filter(x => x.id !== id); localStorage.setItem('productos', JSON.stringify(productos)); showSection('inventory'); } }
 
-        // --- REPORTES (MODIFICADO) ---
+        // --- GASTOS ---
+        function agregarGasto() {
+            const desc = prompt("Descripción del gasto:");
+            const monto = parseFloat(prompt("Monto del gasto:"));
+            if(!desc || isNaN(monto)) return;
+            gastos.push({ id: Date.now(), fecha: new Date().toLocaleDateString(), desc: desc.toUpperCase(), monto: monto });
+            localStorage.setItem('gastos', JSON.stringify(gastos)); showSection('reports');
+        }
+        function borrarGasto(id) { if(confirm("¿Borrar?")) { gastos = gastos.filter(g => g.id !== id); localStorage.setItem('gastos', JSON.stringify(gastos)); showSection('reports'); } }
+        function borrarVenta(id) { if(confirm("¿Borrar?")) { historialVentas = historialVentas.filter(v => v.id !== id); localStorage.setItem('historial_ventas', JSON.stringify(historialVentas)); showSection('reports'); } }
+
+        // --- REPORTES, RESPALDO Y PDF ---
         function renderReports(container) {
             const hoy = new Date().toLocaleDateString();
             const deHoy = historialVentas.filter(v => v.fecha === hoy);
             const gastosHoy = gastos.filter(g => g.fecha === hoy).reduce((s, g) => s + g.monto, 0);
             const brutoHoy = deHoy.reduce((s,v) => s + v.total, 0);
+            const gananciaRealHoy = deHoy.reduce((s,v) => s + v.ganancia, 0) - gastosHoy;
 
             container.innerHTML = `
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-black uppercase text-blue-600">Reportes: ${deHoy.length} Ventas</h2>
+                    <h2 class="text-2xl font-black uppercase italic text-blue-600">Reportes y Cierre</h2>
                     <div class="flex gap-2">
-                        <button onclick="respaldarDatos()" class="bg-blue-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Respaldo</button>
-                        <button onclick="cerrarCajaYPDF()" class="bg-red-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase">Cierre PDF</button>
+                        <label class="bg-gray-800 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg cursor-pointer">
+                            <i class="fas fa-upload mr-1"></i> Subir Respaldo
+                            <input type="file" id="fileRespaldo" class="hidden" onchange="subirRespaldo(event)">
+                        </label>
+                        <button onclick="respaldarDatos()" class="bg-blue-500 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg">Descargar Respaldo</button>
+                        <button onclick="cerrarCajaYPDF()" class="bg-red-500 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase shadow-lg">Cierre Hoy PDF</button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-center">
-                    <div class="bg-white p-4 rounded-3xl border">
-                        <p class="text-[9px] font-black text-gray-400 uppercase">Bruto Hoy</p>
-                        <p class="text-2xl font-black">$${brutoHoy.toFixed(2)}</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div class="bg-white p-5 rounded-[32px] border border-blue-100 flex flex-col items-center">
+                        <p class="text-[9px] font-black text-gray-400 uppercase italic">Ventas Bruto (Hoy)</p>
+                        <p class="text-3xl font-black text-gray-800">$${brutoHoy.toFixed(2)}</p>
                     </div>
-                    <div class="bg-white p-4 rounded-3xl border">
-                        <p class="text-[9px] font-black text-gray-400 uppercase">Gastos Hoy</p>
-                        <button onclick="agregarGasto()" class="text-blue-500 text-xs font-black underline">+$${gastosHoy.toFixed(2)}</button>
+                    <div class="bg-white p-5 rounded-[32px] border border-orange-100 flex flex-col items-center">
+                        <p class="text-[9px] font-black text-gray-400 uppercase italic">Gastos (Hoy)</p>
+                        <p class="text-3xl font-black text-orange-600">$${gastosHoy.toFixed(2)}</p>
+                        <button onclick="agregarGasto()" class="text-[8px] font-black text-blue-500 mt-1 uppercase underline">+ Agregar Gasto</button>
                     </div>
-                    <div class="bg-gray-800 p-4 rounded-3xl text-white">
-                        <p class="text-[9px] font-black text-gray-400 uppercase">Ganancia Neta</p>
-                        <p class="text-2xl font-black text-green-400">$${(deHoy.reduce((s,v)=>s+v.ganancia,0)-gastosHoy).toFixed(2)}</p>
+                    <div class="bg-gray-900 p-5 rounded-[32px] flex flex-col items-center">
+                        <p class="text-[9px] font-black text-gray-500 uppercase italic">Ganancia Limpia</p>
+                        <p class="text-3xl font-black text-green-400">$${gananciaRealHoy.toFixed(2)}</p>
                     </div>
                 </div>
 
-                <div class="space-y-2">
-                    ${deHoy.slice().reverse().map(v => {
-                        let color = v.metodo === 'Efectivo' ? "border-green-300 bg-green-50" : v.metodo === 'Transferencia' ? "border-blue-300 bg-blue-50" : "border-red-300 bg-red-50";
-                        return `
-                            <div class="p-4 rounded-2xl border ${color} flex justify-between items-center shadow-sm">
-                                <div>
-                                    <p class="text-[8px] font-black text-gray-400 uppercase">${v.hora}</p>
-                                    <p class="font-black text-xs uppercase">${v.metodo}</p>
-                                </div>
-                                <div class="text-[10px] font-bold text-gray-600 italic">
-                                    ${v.items ? v.items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ') : 'Sin detalle'}
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <span class="font-black text-lg">$${v.total.toFixed(2)}</span>
-                                    <button onclick="borrarVenta(${v.id})" class="text-red-300 hover:text-red-600"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </div>`;
-                    }).join('')}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-black text-gray-400 uppercase italic mb-2 tracking-widest px-2">Gastos Detallados</p>
+                        ${gastos.filter(g => g.fecha === hoy).map(g => `
+                            <div class="bg-white p-3 rounded-2xl border border-orange-100 flex justify-between items-center">
+                                <span class="text-xs font-bold text-gray-600">${g.desc}</span>
+                                <div class="flex items-center gap-4"><span class="font-black text-orange-600 text-sm">-$${g.monto.toFixed(2)}</span>
+                                <button onclick="borrarGasto(${g.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></div>
+                            </div>`).join('')}
+                    </div>
+                    <div class="space-y-2">
+                        <p class="text-[10px] font-black text-gray-400 uppercase italic mb-2 tracking-widest px-2">Ventas del Día</p>
+                        ${deHoy.slice().reverse().map(v => {
+                            let color = v.metodo === 'Efectivo' ? "border-green-200 bg-green-50/50" : v.metodo === 'Transferencia' ? "border-blue-200 bg-blue-50/50" : "border-red-200 bg-red-50/50";
+                            return `
+                                <div class="bg-white p-3 rounded-2xl border ${color} flex justify-between items-center">
+                                    <span class="text-xs font-bold text-gray-600">${v.hora} - ${v.metodo.toUpperCase()}</span>
+                                    <div class="flex items-center gap-4"><span class="font-black text-gray-800 text-sm">$${v.total.toFixed(2)}</span>
+                                    <button onclick="borrarVenta(${v.id})" class="text-gray-300 hover:text-red-500"><i class="fas fa-trash-alt"></i></button></div>
+                                </div>`;
+                        }).join('')}
+                    </div>
                 </div>`;
         }
 
-        function agregarGasto() {
-            const d = prompt("Descripción:"); const m = parseFloat(prompt("Monto:"));
-            if(d && m) { gastos.push({id: Date.now(), fecha: new Date().toLocaleDateString(), desc: d.toUpperCase(), monto: m}); localStorage.setItem('gastos', JSON.stringify(gastos)); showSection('reports'); }
+        function respaldarDatos() {
+            const data = { productos, historialVentas, gastos, fecha: new Date().toLocaleString() };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `Respaldo_Almacen_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`;
+            a.click();
         }
-        function borrarVenta(id) { if(confirm("¿Anular?")) { historialVentas = historialVentas.filter(v => v.id !== id); localStorage.setItem('historial_ventas', JSON.stringify(historialVentas)); showSection('reports'); } }
+
+        function subirRespaldo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (confirm("¿Quieres cargar este respaldo? Se borrarán los datos actuales.")) {
+                        productos = data.productos || [];
+                        historialVentas = data.historialVentas || data.historial || [];
+                        gastos = data.gastos || [];
+                        localStorage.setItem('productos', JSON.stringify(productos));
+                        localStorage.setItem('historial_ventas', JSON.stringify(historialVentas));
+                        localStorage.setItem('gastos', JSON.stringify(gastos));
+                        alert("Respaldo cargado con éxito.");
+                        window.location.reload();
+                    }
+                } catch (err) { alert("Archivo no válido."); }
+            };
+            reader.readAsText(file);
+        }
 
         function cerrarCajaYPDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
             const hoy = new Date().toLocaleDateString();
             const deHoy = historialVentas.filter(v => v.fecha === hoy);
             const gHoy = gastos.filter(g => g.fecha === hoy);
-            
-            doc.setFontSize(18); doc.text("REPORTE DE CIERRE - EL ALMACÉN", 20, 20);
-            doc.setFontSize(12); doc.text(`Fecha: ${hoy} | Ventas: ${deHoy.length}`, 20, 30);
-            
-            let y = 45;
-            doc.text("DETALLE DE OPERACIONES:", 20, y); y+=10;
-            deHoy.forEach(v => {
-                const itemsStr = v.items ? v.items.map(i => `${i.cantidad}x ${i.nombre}`).join(', ') : 'S/D';
-                doc.setFontSize(8);
-                doc.text(`${v.hora} | ${v.metodo.toUpperCase()} | $${v.total.toFixed(2)}`, 20, y);
-                doc.text(`   Productos: ${itemsStr.substring(0, 80)}`, 20, y+4);
-                y += 12;
-                if(y > 270) { doc.addPage(); y = 20; }
-            });
+            const totalG = gHoy.reduce((s, g) => s + g.monto, 0);
+            const totalV = deHoy.reduce((s, v) => s + v.total, 0);
+            const gNeta = deHoy.reduce((s, v) => s + v.ganancia, 0) - totalG;
 
-            doc.setFontSize(12); doc.text(`TOTAL BRUTO: $${deHoy.reduce((s,v)=>s+v.total,0).toFixed(2)}`, 20, y+10);
+            doc.setFontSize(20); doc.text("CIERRE DE CAJA - EL ALMACÉN", 20, 20);
+            doc.setFontSize(12); doc.text(`Fecha: ${hoy}`, 20, 30);
+            doc.text(`---------------------------------------`, 20, 35);
+            doc.text(`VENTAS TOTALES (BRUTO): $${totalV.toFixed(2)}`, 20, 45);
+            doc.text(`CANTIDAD DE VENTAS: ${deHoy.length}`, 20, 52);
+            doc.text(`GASTOS TOTALES: $${totalG.toFixed(2)}`, 20, 59);
+            doc.setFontSize(14); doc.text(`GANANCIA LIMPIA DEL DÍA: $${gNeta.toFixed(2)}`, 20, 75);
+            
+            doc.setFontSize(10); doc.text("DETALLE DE MÉTODOS DE PAGO:", 20, 90);
+            doc.text(`Efectivo: $${deHoy.filter(v => v.metodo === 'Efectivo').reduce((s,v)=>s+v.total,0).toFixed(2)}`, 25, 97);
+            doc.text(`Transferencia: $${deHoy.filter(v => v.metodo === 'Transferencia').reduce((s,v)=>s+v.total,0).toFixed(2)}`, 25, 104);
+            doc.text(`Tarjeta: $${deHoy.filter(v => v.metodo === 'Tarjeta').reduce((s,v)=>s+v.total,0).toFixed(2)}`, 25, 111);
+
             doc.save(`Cierre_${hoy.replace(/\//g,'-')}.pdf`);
-        }
-
-        function respaldarDatos() {
-            const data = { productos, historialVentas, gastos };
-            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-            a.download = `Respaldo_${new Date().toLocaleDateString().replace(/\//g,'-')}.json`; a.click();
+            alert("Informe PDF generado y descargado.");
         }
 
         function filtrarProductos() { filtroActual = document.getElementById('buscador').value.toLowerCase(); showSection('pos'); }
